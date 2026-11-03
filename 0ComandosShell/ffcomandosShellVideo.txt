@@ -1,1 +1,0 @@
-ffmpeg -i CoffeeTales_Animacion3D.webm -c:v libx264 -crf 18 -c:a aac CoffeeTales_Final.mp4 //convertir a mp4
