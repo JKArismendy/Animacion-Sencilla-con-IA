@@ -1,16 +1,5 @@
 import { getTimeline } from './audio-sync.js';
 
-// Textos en el mismo orden que dialogueTracks / timeline (ver scripts/generar_voces.py)
-const LINES = [
-  '¿Por qué la gente cree que hacer buen café es un examen de cálculo universitario?',
-  '¡Total! Me dicen \'usa un ratio 1:16 con extracción de dos minutos\'... ¡y yo solo quería que me tomaran rico en el desayuno!',
-  'El ratio no es física cuántica. Es exactamente igual a cocinar arroz o ponerle sal a una sopa.',
-  'Básicamente, el ratio es cuántos amigos invito a la taza: si vienen pocos, la fiesta muere.',
-  'Regla de oro estándar: por cada cucharada sopera colmada de café, una taza normal de agua.',
-  'Tu paladar manda, no la báscula.',
-  '¡Y no me dejen enfriar en el mesón! Comenta cómo lo preparas tú en casa.'
-];
-
 const TEXT_COLOR = '#FFFFFF';   // siempre blanco, hable quien hable
 
 // Zona segura de Instagram: franja entre ~62% y ~82% de la altura del cuadro
@@ -38,7 +27,12 @@ function splitIntoChunks(text) {
   return chunks;
 }
 
-const CHUNKS = LINES.map(splitIntoChunks);
+// Los textos vienen de guion.json (vía timeline.json); se parten una sola vez por línea
+const chunkCache = new Map();
+function getChunks(index, text) {
+  if (!chunkCache.has(index)) chunkCache.set(index, splitIntoChunks(text));
+  return chunkCache.get(index);
+}
 
 // Capa de subtítulos dibujada DENTRO del canvas WebGL: se graba junto al video
 export function createSubtitles(width, height) {
@@ -117,13 +111,13 @@ export function createSubtitles(width, height) {
     }
     const timeline = getTimeline();
     const index = timeline.findIndex(s => time >= s.start && time < s.end);
-    if (index < 0 || !CHUNKS[index]) {
+    if (index < 0 || !timeline[index].texto) {
       mesh.visible = false;
       return;
     }
 
     const seg = timeline[index];
-    const chunks = CHUNKS[index];
+    const chunks = getChunks(index, seg.texto);
     const total = chunks.reduce((n, c) => n + c.length, 0);
     const frac = Math.min(Math.max((time - seg.start) / (seg.end - seg.start), 0), 0.9999);
 

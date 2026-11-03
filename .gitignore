@@ -2,4 +2,9 @@
 *.zip
 0ComandosShell/
 .env
+<<<<<<< HEAD
 .venv
+=======
+.env/
+.venv/
+>>>>>>> guionCentralizado

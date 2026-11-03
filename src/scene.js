@@ -229,13 +229,13 @@ export function setupScene() {
   // 1. ILUMINACIÓN EQUILIBRADA Y CONTRASTADA
 
   // Luz ambiente base baja para mantener sombras profundas sin empastar
-  const ambientLight = new THREE.AmbientLight(0x0F1826, 0.75);
+  const ambientLight = new THREE.AmbientLight(0x0F1826, 0.05);
   scene.add(ambientLight);
 
   // KEY LIGHT CÁLIDA / ÁMBAR (En ángulo de 45° a la izquierda, altura media 2.6m)
   // Crea sombra natural bajo la visera, pero bañando los ojos y el rostro sin quemar
-  const keyLight = new THREE.SpotLight(0xFFA866, 2.2);
-  keyLight.position.set(-1.4, 2.6, 2.2);
+  const keyLight = new THREE.SpotLight(0xf5ad78, 2.5);
+  keyLight.position.set(0.5, 2.6, 2.2);
   keyLight.angle = Math.PI / 2.8;
   keyLight.penumbra = 0.85; // Borde suave
   keyLight.decay = 1.8;
@@ -253,7 +253,7 @@ export function setupScene() {
 
   // LA LUZ TRASERA AZUL CIAN (RIM / KICKER) RECUPERADA
   // Entra desde atrás a la derecha con fuerza para recortar siluetas
-  const rimLightCyan = new THREE.SpotLight(0x00E5FF, 2.2);
+  const rimLightCyan = new THREE.SpotLight(0x1c9eb8, 2.2);
   rimLightCyan.position.set(2.2, 2.6, -1.4);
   rimLightCyan.angle = Math.PI / 2.5;
   rimLightCyan.penumbra = 0.5;
@@ -261,7 +261,7 @@ export function setupScene() {
   scene.add(rimLightCyan);
 
   // Kicker secundario azul tenue por el lado izquierdo para definir el hombro oscuro
-  const kickerLeft = new THREE.PointLight(0x1D4ED8, 1.0, 5.0);
+  const kickerLeft = new THREE.PointLight(0x1485e0, 1.0, 5.0);
   kickerLeft.position.set(-2.2, 2.0, -1.0);
   scene.add(kickerLeft);
 
@@ -321,7 +321,7 @@ export function setupScene() {
     put(g, cyl(0.007, 0.007, 1.2, 6, mat(0x111111)), 0, 0.7, 0);
     put(g, cyl(0.04, 0.17, 0.18, 8, mat(0x15161C, { metalness: 0.4, roughness: 0.4 })), 0, 0, 0);
     put(g, new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), new THREE.MeshBasicMaterial({ color: 0xFFE0A0 })), 0, -0.07, 0);
-    const light = new THREE.PointLight(0xFFB066, 0.9, 1.5, 2);
+    const light = new THREE.PointLight(0xd1c217, 1.5, 1.5, 2);
     light.position.set(0, -0.12, 0.1);
     g.add(light);
     scene.add(g);

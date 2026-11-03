@@ -1,62 +1,30 @@
-// 1. LISTA OFICIAL Y ORDENADA DE DIÁLOGOS
-// Pon aquí las rutas exactas de los audios en el orden del episodio
-export const dialogueTracks = [
-  { file: 'audio/samario_1.mp3',     speaker: 'Samario',     shot: 'WIDE' },
-  { file: 'audio/tostadito_1.mp3', speaker: 'Tostadito', shot: 'CUP' },
-  { file: 'audio/samario_2.mp3',     speaker: 'Samario',     shot: 'SAMARIO' },
-  { file: 'audio/tostadito_2.mp3', speaker: 'Tostadito', shot: 'CUP' },
-  { file: 'audio/samario_3.mp3',     speaker: 'Samario',     shot: 'SAMARIO' },
-  { file: 'audio/samario_4.mp3',     speaker: 'Samario',     shot: 'WIDE' },
-  { file: 'audio/tostadito_3.mp3', speaker: 'Tostadito', shot: 'WIDE' }
-];
+// 1. LÍNEA DE TIEMPO
+// Se carga desde src/timeline.json, que genera scripts/medir_tiempos.py a partir de guion.json:
+//   lineas   -> quién habla y qué dice, con tiempos reales
+//   camara   -> cambios de plano (pueden ocurrir a mitad de una línea)
+//   acciones -> gestos de los personajes en momentos concretos
+let timeline = { lineas: [], camara: [], acciones: [], planos: {} };
 
-// Fallback preventivo con tiempos medidos si aún no cargan los metadatos
-let timeline = [
-  { start: 0.0,  end: 3.8,  speaker: "Samario",     shot: "WIDE" },
-  { start: 3.8,  end: 11.2, speaker: "Tostadito", shot: "CUP" },
-  { start: 11.2, end: 18.2, speaker: "Samario",     shot: "SAMARIO" },
-  { start: 18.2, end: 24.5, speaker: "Tostadito", shot: "CUP" },
-  { start: 24.5, end: 32.5, speaker: "Samario",     shot: "SAMARIO" },
-  { start: 32.5, end: 36.5, speaker: "Samario",     shot: "WIDE" },
-  { start: 36.5, end: 45.0, speaker: "Tostadito", shot: "WIDE" }
-];
-
-// Medición automática al milisegundo por el navegador
-export async function buildPreciseTimeline() {
-  const calculated = [];
-  let currentOffset = 0.0;
-
-  for (const track of dialogueTracks) {
-    try {
-      const audio = new Audio(track.file);
-      await new Promise((resolve) => {
-        audio.addEventListener('loadedmetadata', resolve, { once: true });
-        audio.addEventListener('error', resolve, { once: true });
-      });
-      const dur = audio.duration || 4.0;
-      calculated.push({
-        start: currentOffset,
-        end: currentOffset + dur,
-        speaker: track.speaker,
-        shot: track.shot
-      });
-      currentOffset += dur;
-    } catch {
-      // Si falla algún archivo individual mantiene el fallback
-    }
-  }
-
-  if (calculated.length === dialogueTracks.length) {
-    timeline = calculated;
-  }
+export async function loadTimeline(url = './src/timeline.json') {
+  const res = await fetch(url, { cache: 'no-store' });
+  if (!res.ok) throw new Error(`No se pudo cargar ${url} (${res.status}). Ejecuta scripts/construir.py`);
+  timeline = await res.json();
+  return timeline;
 }
 
-// Ejecutar medición en segundo plano de inmediato
-buildPreciseTimeline();
-
-// Línea de tiempo vigente (la usan los subtítulos)
+// Líneas de diálogo vigentes (las usan los subtítulos)
 export function getTimeline() {
-  return timeline;
+  return timeline.lineas;
+}
+
+// Plano de cámara vigente en un instante: la última orden cuyo tiempo ya pasó
+export function getShotAt(time) {
+  let cue = { plano: 'WIDE', transicion: 'normal' };
+  for (const c of timeline.camara) {
+    if (c.t <= time) cue = c;
+    else break;
+  }
+  return cue;
 }
 
 // 2. ANALIZADOR DE VOLUMEN (Web Audio API)
@@ -68,10 +36,10 @@ export function setupAudioAnalyser(audioElement) {
   const source = audioCtx.createMediaElementSource(audioElement);
   analyser = audioCtx.createAnalyser();
   analyser.fftSize = 256;
-  
+
   source.connect(analyser);
   analyser.connect(audioCtx.destination);
-  
+
   dataArray = new Uint8Array(analyser.frequencyBinCount);
   return { audioCtx, analyser, source };
 }
@@ -83,7 +51,8 @@ function getAudioVolume() {
   const vocalBins = 32;
   for (let i = 0; i < vocalBins; i++) sum += dataArray[i];
   const avg = sum / vocalBins;
-  return avg > 12 ? (avg / 255) : 0;
+  // Umbral 80/255: el ruido de fondo de las pausas llega a ~68; al hablar el nivel es de 100 a 190
+  return avg > 80 ? (avg / 255) : 0;
 }
 
 // 3. VARIABLES DE ESTADO Y CONTROL DE ACTUACIÓN
@@ -94,8 +63,9 @@ let currentCupRotY = 0;
 let currentCupTiltZ = 0;
 
 export function updateActors(time, samario, tostadito) {
-  // Búsqueda estricta del diálogo activo
-  const current = timeline.find(s => time >= s.start && time < s.end) || { speaker: "None", shot: "WIDE", start: time, end: time + 1 };
+  // Línea de diálogo activa (quién habla)
+  const current = timeline.lineas.find(s => time >= s.start && time < s.end)
+    || { speaker: "None", start: time, end: time + 1 };
   const volume = getAudioVolume();
   const isSpeaking = volume > 0.02;
 
@@ -119,27 +89,17 @@ export function updateActors(time, samario, tostadito) {
     // ESCUCHANDO / PAUSA:
     samario.setJawOpen(0);
     targetArm = 0.0; // Brazo descansando en la barra
-    
+
     if (isCupTurn) {
       // Mirar atentamente a Tostadito con asentimientos suaves y orgánicos
       targetSamarioY = 0.26;
-      targetSamarioX = 0.04 + (Math.sin(time * 3.2) * 0.035); // Asentimiento de aprobación
+      targetSamarioX = 0.04 + (Math.sin(time * 3.2) * 0.035);
     } else {
       // Silencio general: mirada pensativa al frente
       targetSamarioY = 0.0;
       targetSamarioX = Math.sin(time * 1.5) * 0.02;
     }
   }
-
-  // Interpolación suave
-  currentSamarioHeadY += (targetSamarioY - currentSamarioHeadY) * 0.09;
-  currentSamarioHeadX += (targetSamarioX - currentSamarioHeadX) * 0.09;
-  currentSamarioArm   += (targetArm - currentSamarioArm) * 0.09;
-
-  // Respiración viva en el torso
-  const breath = Math.sin(time * 2.0) * 0.003;
-  samario.setHeadAngles(currentSamarioHeadY, currentSamarioHeadX, breath);
-  if (samario.setArmGesture) samario.setArmGesture(currentSamarioArm);
 
   // ==========================================
   // --- ACTUACIÓN DE TOSTADITO ---
@@ -158,24 +118,59 @@ export function updateActors(time, samario, tostadito) {
     if (lineTime < 0.35) {
       cupBounce = Math.sin((lineTime / 0.35) * Math.PI) * 0.045;
     } else if (isSpeaking) {
-      // Micro-vibración orgánica por la potencia de voz
-      cupBounce = volume * 0.015;
+      cupBounce = volume * 0.015; // Micro-vibración por la potencia de voz
     }
   } else {
     // ESCUCHANDO / PAUSA:
     tostadito.setMouthScale(1.0);
     targetCupY = 0.0;
 
-    // Movimiento reactivo durante la pausa:
-    // Pequeño ladeo de cabeza/taza curioso y saltito de impaciencia cada 3.5s
+    // Ladeo curioso y saltito de impaciencia cada 3.5 s
     const pauseCycle = time % 3.5;
     if (pauseCycle < 0.25) {
-      cupBounce = Math.sin((pauseCycle / 0.25) * Math.PI) * 0.025; // Salto discreto
-      targetCupTilt = -0.08; // Ladeo de atención
+      cupBounce = Math.sin((pauseCycle / 0.25) * Math.PI) * 0.025;
+      targetCupTilt = -0.08;
     } else {
       targetCupTilt = 0.0;
     }
   }
+
+  // ==========================================
+  // --- GESTOS DEL GUION (acciones de guion.json) ---
+  // Se aplican encima de la actuación automática mientras dura cada acción.
+  // ==========================================
+  for (const a of timeline.acciones) {
+    if (time < a.start || time >= a.end) continue;
+    const p = (time - a.start) / (a.end - a.start);   // progreso 0 -> 1
+    const f = a.fuerza ?? 1;
+
+    if (a.quien === "Samario") {
+      switch (a.gesto) {
+        case "asentir":      targetSamarioX += Math.sin(p * Math.PI * 4) * 0.07 * f; break;
+        case "negar":        targetSamarioY += Math.sin(p * Math.PI * 4) * 0.12 * f; break;
+        case "mirar_taza":   targetSamarioY = 0.26; break;
+        case "mirar_frente": targetSamarioY = 0.0; break;
+        case "gesticular":   targetArm = 0.35 + Math.sin(p * Math.PI * 4) * 0.08 * f; break;
+      }
+    } else if (a.quien === "Tostadito") {
+      switch (a.gesto) {
+        case "saltar":         cupBounce += Math.sin(p * Math.PI) * 0.07 * f; break;
+        case "ladear":         targetCupTilt = -0.18 * f; break;
+        case "temblar":        cupBounce += Math.sin(time * 50) * 0.006 * f; break;
+        case "mirar_samario":  targetCupY = -0.28; break;
+        case "mirar_frente":   targetCupY = 0.0; break;
+      }
+    }
+  }
+
+  // Interpolación suave y aplicación
+  currentSamarioHeadY += (targetSamarioY - currentSamarioHeadY) * 0.09;
+  currentSamarioHeadX += (targetSamarioX - currentSamarioHeadX) * 0.09;
+  currentSamarioArm   += (targetArm - currentSamarioArm) * 0.09;
+
+  const breath = Math.sin(time * 2.0) * 0.003;   // Respiración viva en el torso
+  samario.setHeadAngles(currentSamarioHeadY, currentSamarioHeadX, breath);
+  if (samario.setArmGesture) samario.setArmGesture(currentSamarioArm);
 
   currentCupRotY += (targetCupY - currentCupRotY) * 0.10;
   currentCupTiltZ += (targetCupTilt - currentCupTiltZ) * 0.08;
@@ -185,5 +180,6 @@ export function updateActors(time, samario, tostadito) {
     tostadito.setOrientation(currentCupRotY, currentCupTiltZ);
   }
 
-  return current.shot;
+  // Cámara: plano vigente según el guion
+  return getShotAt(time);
 }
