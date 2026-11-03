@@ -84,6 +84,7 @@
     import { setupScene } from './src/scene.js';
     import { setupCamera } from './src/camera.js';
     import { updateActors, setupAudioAnalyser } from './src/audio-sync.js';
+    import { createSubtitles } from './src/subtitles.js';
     import { createSamario } from './models/samario.js';
     //import { createLucas } from './models/lucas.js';
     import { createTostadito } from './models/tostadito.js';
@@ -130,6 +131,9 @@
     // Parámetros: intensidad de ruido, intensidad de líneas scanline, cantidad de líneas, escala de grises
     const filmPass = new THREE.FilmPass(0.18, 0.025, 648, false);
     composer.addPass(filmPass);
+
+    // Subtítulos dibujados dentro del canvas (quedan grabados en el video)
+    const subs = createSubtitles(WIDTH, HEIGHT);
 
     // 3. Montar Personajes
     const samario = createSamario();
@@ -200,12 +204,20 @@
         const t = audioEl.currentTime;
         const activeShot = updateActors(t, samario, tostadito);
         updateCam(activeShot);
+        subs.update(t);
       } else {
         updateCam("WIDE");
+        subs.update(-1);
       }
 
       // El renderizado ahora pasa por composer en vez de renderer directo
       composer.render();
+
+      // Subtítulos encima del resultado final (después del bloom y el grano)
+      renderer.autoClear = false;
+      renderer.clearDepth();
+      renderer.render(subs.scene, subs.camera);
+      renderer.autoClear = true;
     }
 
     animate();

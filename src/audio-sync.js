@@ -54,6 +54,11 @@ export async function buildPreciseTimeline() {
 // Ejecutar medición en segundo plano de inmediato
 buildPreciseTimeline();
 
+// Línea de tiempo vigente (la usan los subtítulos)
+export function getTimeline() {
+  return timeline;
+}
+
 // 2. ANALIZADOR DE VOLUMEN (Web Audio API)
 let analyser = null;
 let dataArray = null;
