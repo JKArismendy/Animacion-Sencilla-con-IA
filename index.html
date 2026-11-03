@@ -83,7 +83,7 @@
   <script type="module">
     import { setupScene } from './src/scene.js';
     import { setupCamera } from './src/camera.js';
-    import { updateActors, setupAudioAnalyser } from './src/audio-sync.js';
+    import { updateActors, setupAudioAnalyser, loadTimeline } from './src/audio-sync.js';
     import { createSubtitles } from './src/subtitles.js';
     import { createSamario } from './models/samario.js';
     import { createTostadito } from './models/tostadito.js';
@@ -95,8 +95,17 @@
 
     // 1. Configuración de Lienzo y Renderizador (1080 x 1920)
     const WIDTH = 1080, HEIGHT = 1920;
+    // Línea de tiempo del guion (generada por scripts/construir.py)
+    let timeline;
+    try {
+      timeline = await loadTimeline();
+    } catch (err) {
+      subBox.innerHTML = err.message;
+      btnRecord.disabled = true;
+      throw err;
+    }
     const scene = setupScene();
-    const { camera, update: updateCam } = setupCamera(WIDTH, HEIGHT);
+    const { camera, update: updateCam } = setupCamera(WIDTH, HEIGHT, timeline.planos);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
     renderer.setSize(WIDTH, HEIGHT);
@@ -200,8 +209,8 @@
 
       if (!audioEl.paused && !audioEl.ended) {
         const t = audioEl.currentTime;
-        const activeShot = updateActors(t, samario, tostadito);
-        updateCam(activeShot);
+        const shot = updateActors(t, samario, tostadito);
+        updateCam(shot.plano, shot.transicion);
         subs.update(t);
       } else {
         updateCam("WIDE");

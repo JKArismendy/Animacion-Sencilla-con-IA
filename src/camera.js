@@ -1,4 +1,5 @@
-export function setupCamera(width, height) {
+// extraShots: planos propios definidos en guion.json -> "planos": { NOMBRE: { pos: [x,y,z], mira: [x,y,z] } }
+export function setupCamera(width, height, extraShots = {}) {
   const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
 
   // Posiciones base de cada plano cinematográfico
@@ -17,6 +18,16 @@ export function setupCamera(width, height) {
     }
   };
 
+  for (const [name, shot] of Object.entries(extraShots)) {
+    targets[name] = {
+      pos: new THREE.Vector3(...shot.pos),
+      look: new THREE.Vector3(...shot.mira)
+    };
+  }
+
+  // Velocidad de la transición entre planos (fracción recorrida por fotograma)
+  const SPEEDS = { corte: 1.0, rapida: 0.16, normal: 0.08, lenta: 0.03 };
+
   const currentPos = new THREE.Vector3().copy(targets.WIDE.pos);
   const currentLook = new THREE.Vector3().copy(targets.WIDE.look);
 
@@ -28,15 +39,16 @@ export function setupCamera(width, height) {
 
   return {
     camera,
-    update: (shotType) => {
+    update: (shotType, transition = 'normal') => {
       // Avanzar tiempo del pulso humano
       clock += 0.016; // Aprox. 60 FPS
 
       const target = targets[shotType] || targets.WIDE;
 
       // 1. Interpolación suave de transición entre planos
-      currentPos.lerp(target.pos, 0.08);
-      currentLook.lerp(target.look, 0.08);
+      const speed = SPEEDS[transition] ?? SPEEDS.normal;
+      currentPos.lerp(target.pos, speed);
+      currentLook.lerp(target.look, speed);
 
       // 2. Ruido errático multicapa (superposición de frecuencias asimétricas)
       // Capa lenta: deriva natural del cuerpo/respiración del camarógrafo

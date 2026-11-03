@@ -1,44 +1,105 @@
-[
-  {
-    "speaker": "Samario",
-    "shot": "WIDE",
-    "start": 0.0,
-    "end": 4.344
-  },
-  {
-    "speaker": "Tostadito",
-    "shot": "CUP",
-    "start": 4.344,
-    "end": 13.512
-  },
-  {
-    "speaker": "Samario",
-    "shot": "SAMARIO",
-    "start": 13.512,
-    "end": 20.304
-  },
-  {
-    "speaker": "Tostadito",
-    "shot": "CUP",
-    "start": 20.304,
-    "end": 27.072
-  },
-  {
-    "speaker": "Samario",
-    "shot": "SAMARIO",
-    "start": 27.072,
-    "end": 33.072
-  },
-  {
-    "speaker": "Samario",
-    "shot": "WIDE",
-    "start": 33.072,
-    "end": 35.88
-  },
-  {
-    "speaker": "Tostadito",
-    "shot": "WIDE",
-    "start": 35.88,
-    "end": 41.232
-  }
-]
+{
+  "titulo": "Episodio 1 - El ratio del café",
+  "duracion": 28.0,
+  "planos": {},
+  "lineas": [
+    {
+      "speaker": "Samario",
+      "texto": "¿Por qué la gente cree que hacer buen café es un examen de cálculo universitario?",
+      "start": 0.0,
+      "end": 4.0
+    },
+    {
+      "speaker": "Tostadito",
+      "texto": "¡Total! Me dicen 'usa un ratio 1:16 con extracción de dos minutos'... ¡y yo solo quería que me tomaran rico en el desayuno!",
+      "start": 4.0,
+      "end": 8.0
+    },
+    {
+      "speaker": "Samario",
+      "texto": "El ratio no es física cuántica. Es exactamente igual a cocinar arroz o ponerle sal a una sopa.",
+      "start": 8.0,
+      "end": 12.0
+    },
+    {
+      "speaker": "Tostadito",
+      "texto": "Básicamente, el ratio es cuántos amigos invito a la taza: si vienen pocos, la fiesta muere.",
+      "start": 12.0,
+      "end": 16.0
+    },
+    {
+      "speaker": "Samario",
+      "texto": "Regla de oro estándar: por cada cucharada sopera colmada de café, una taza normal de agua.",
+      "start": 16.0,
+      "end": 20.0
+    },
+    {
+      "speaker": "Samario",
+      "texto": "Tu paladar manda, no la báscula.",
+      "start": 20.0,
+      "end": 24.0
+    },
+    {
+      "speaker": "Tostadito",
+      "texto": "¡Y no me dejen enfriar en el mesón! Comenta cómo lo preparas tú en casa.",
+      "start": 24.0,
+      "end": 28.0
+    }
+  ],
+  "camara": [
+    {
+      "t": 0.0,
+      "plano": "WIDE",
+      "transicion": "normal"
+    },
+    {
+      "t": 4.0,
+      "plano": "CUP",
+      "transicion": "normal"
+    },
+    {
+      "t": 8.0,
+      "plano": "SAMARIO",
+      "transicion": "normal"
+    },
+    {
+      "t": 12.0,
+      "plano": "CUP",
+      "transicion": "normal"
+    },
+    {
+      "t": 16.0,
+      "plano": "SAMARIO",
+      "transicion": "normal"
+    },
+    {
+      "t": 18.0,
+      "plano": "CUP",
+      "transicion": "rapida"
+    },
+    {
+      "t": 19.2,
+      "plano": "SAMARIO",
+      "transicion": "normal"
+    },
+    {
+      "t": 20.0,
+      "plano": "WIDE",
+      "transicion": "normal"
+    },
+    {
+      "t": 24.0,
+      "plano": "WIDE",
+      "transicion": "normal"
+    }
+  ],
+  "acciones": [
+    {
+      "quien": "Tostadito",
+      "gesto": "saltar",
+      "start": 18.0,
+      "end": 18.8,
+      "fuerza": 1.0
+    }
+  ]
+}

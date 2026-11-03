@@ -27,12 +27,12 @@ Todo el proyecto corre en el navegador: no hay *build*, ni *bundler*, ni depende
 | **Web Audio API** | Lectura del volumen | `AnalyserNode` (FFT 256) sobre las frecuencias de la voz; ese valor mueve las bocas |
 | **Canvas 2D + `CanvasTexture`** | Texturas y subtítulos procedurales | Ladrillo, madera, pizarra, etiquetas, café y letrero se dibujan por código; los subtítulos se dibujan en una capa ortográfica sobre el render |
 | **`captureStream` + `MediaRecorder`** | Grabación del video | Captura el canvas a 30 fps junto con el audio, en VP9/Opus a 12 Mbps, y descarga un `.webm` |
-| **edge-tts** (Python) | Voces | Voces neuronales de Microsoft `es-CO-GonzaloNeural` (Samario) y `es-CO-SalomeNeural` (Tostadito, con tono más agudo) |
+| **ElevenLabs** (API) | Voces | Modelo `eleven_multilingual_v2` con una voz por personaje, definida en `guion.json`; la clave va en `.env` |
 | **FFmpeg / FFprobe** | Audio y video | Une los diálogos, mide duraciones y convierte el `.webm` final a `.mp4` |
 
 ### Cómo funciona la sincronización
 
-1. `audio-sync.js` mide la duración de cada archivo de diálogo en el navegador y arma la línea de tiempo (hablante y plano de cámara por tramo). Si aún no cargaron los metadatos, usa tiempos de respaldo.
+1. `medir_tiempos.py` mide cada pista con FFprobe y convierte `guion.json` en `src/timeline.json` (líneas, cambios de cámara y gestos con tiempos reales). `audio-sync.js` carga ese archivo al abrir la página.
 2. En cada fotograma, con `audio.currentTime` se busca el tramo activo, se lee el volumen y se llama a los métodos de cada personaje (`setJawOpen`, `setHeadAngles`, `setMouthScale`, `setOrientation`…).
 3. Cada modelo suma por su cuenta animaciones autónomas: parpadeo, cambios de mirada, cejas, respiración, movimiento del brazo y vapor.
 4. La cámara recibe el plano activo y se desplaza suavemente hacia él, con una pequeña vibración de cámara en mano.
@@ -56,35 +56,59 @@ Abre `http://localhost:8000`, pulsa **Iniciar / Grabar Video 3D** y espera a que
 ffmpeg -i CoffeeTales_Animacion3D.webm -c:v libx264 -crf 18 -c:a aac CoffeeTales_Final.mp4
 ```
 
-### 3. Regenerar las voces (opcional)
+### 3. Escribir el guion y generar las voces
 
-Requiere Python 3 y FFmpeg instalado:
+**Todo el guion vive en `guion.json`**: quién habla, qué dice, qué hace la cámara y qué gestos hacen los personajes.
+Requiere Python 3 y FFmpeg, y un archivo `.env` en la raíz con `ELEVENLABS_API_KEY=tu_clave`.
 
 ```bash
-pip install edge-tts
+python scripts/construir.py            # voces -> unir audios -> tiempos (solo regenera lo que cambió)
+python scripts/construir.py --force    # regenera todas las voces
 ```
 
-Los scripts usan rutas relativas:
+`construir.py` ejecuta en orden `generar_voces.py`, `unir_audios.py` y `medir_tiempos.py`, que también puedes lanzar por separado desde cualquier carpeta. Las voces ya generadas no se vuelven a pedir (y no gastan créditos) mientras no cambies su texto, voz o líneas vecinas.
 
-| Paso | Script | Dónde ejecutarlo |
-|---|---|---|
-| Generar las 7 pistas de voz | `scripts/generar_voces.py` | Dentro de `audio/` |
-| Unirlas en `audio_completo.mp3` | `scripts/unir_audios.py` | Dentro de `audio/` |
-| Medir duraciones y escribir `src/timeline.json` | `scripts/medir_tiempos.py` | En la raíz del proyecto |
+#### Formato de `guion.json`
 
-Si cambias el guion, actualiza también los textos de `src/subtitles.js` y la lista `dialogueTracks` de `src/audio-sync.js`.
+```json
+{
+  "modelo": "eleven_multilingual_v2",
+  "personajes": { "Samario": { "voz_id": "...", "stability": 0.55, "style": 0.15 }, "Tostadito": { ... } },
+  "planos": { "PICADO": { "pos": [0, 3, 2], "mira": [0, 1.3, 0] } },
+  "lineas": [
+    {
+      "personaje": "Samario",
+      "texto": "Lo que dice esta línea.",
+      "camara": [
+        { "en": 0.0, "plano": "SAMARIO" },
+        { "en": 0.5, "plano": "CUP", "transicion": "rapida" },
+        { "en": 0.8, "plano": "SAMARIO" }
+      ],
+      "acciones": [ { "en": 0.5, "dura": 0.8, "quien": "Tostadito", "gesto": "saltar" } ]
+    }
+  ]
+}
+```
+
+- **`camara`**: un plano (`"camara": "CUP"`) o una lista de cambios. `en` es **cuánto de la línea ha pasado** (0 = inicio, 0.5 = mitad, 1 = final), así que sigue siendo válido aunque cambie la duración del audio. Si una línea no tiene `camara`, la cámara se queda como estaba.
+- **Planos**: `WIDE`, `SAMARIO`, `CUP`, más los que definas en `planos` (`pos` = dónde está la cámara, `mira` = a dónde apunta).
+- **`transicion`**: `corte` (instantánea), `rapida`, `normal` (por defecto) o `lenta`.
+- **`acciones`**: gestos puntuales. `en` igual que arriba; `dura` en **segundos** (1 por defecto); `quien` por defecto es quien habla; `fuerza` opcional (1 = normal).
+- **Gestos de Samario**: `asentir`, `negar`, `mirar_taza`, `mirar_frente`, `gesticular`. **De Tostadito**: `saltar`, `ladear`, `temblar`, `mirar_samario`, `mirar_frente`.
+- Los scripts validan el archivo y avisan con el número de línea si algo está mal escrito.
 
 ## Estructura del proyecto
 
 ```
 .
 ├── index.html            Página, render, postprocesado y grabación
+├── guion.json            EL GUION: texto, voces, cámara y gestos
 ├── src/
 │   ├── scene.js          Escenografía y luces
 │   ├── camera.js         Planos de cámara
 │   ├── audio-sync.js     Sincronización audio-animación
 │   ├── subtitles.js      Subtítulos dentro del canvas
-│   ├── timeline.json     Tiempos de los diálogos (informativo)
+│   ├── timeline.json     Línea de tiempo generada desde guion.json (no editar)
 │   └── scene-base.js     Versión original de la escena (respaldo)
 ├── models/
 │   ├── samario.js        Barista (personaje activo)
@@ -112,10 +136,10 @@ Si cambias el guion, actualiza también los textos de `src/subtitles.js` y la li
 | Archivo | Descripción |
 |---|---|
 | `scene.js` | Crea la escena completa: luces, pared de ladrillo, pizarra, ventanas, lámparas, estantes, barra trasera y barra principal con textura y letrero. |
-| `camera.js` | Define los planos `WIDE`, `SAMARIO` y `CUP`, la transición suave entre ellos y la vibración de cámara en mano. |
-| `audio-sync.js` | Calcula la línea de tiempo desde los audios, lee el volumen con Web Audio y anima a ambos personajes según quién hable. |
-| `subtitles.js` | Dibuja los subtítulos en una capa 2D sobre el render, partidos en fragmentos de hasta 6 palabras. |
-| `timeline.json` | Tiempos medidos de cada diálogo, generado por `medir_tiempos.py`. Hoy el navegador mide los suyos, así que es informativo. |
+| `camera.js` | Define los planos `WIDE`, `SAMARIO` y `CUP` (más los de `guion.json`), la transición entre ellos y la vibración de cámara en mano. |
+| `audio-sync.js` | Carga `timeline.json`, lee el volumen con Web Audio y anima a ambos personajes según quién hable y los gestos del guion. |
+| `subtitles.js` | Toma el texto de `timeline.json` y dibuja los subtítulos en una capa 2D sobre el render, partidos en fragmentos de hasta 6 palabras. |
+| `timeline.json` | Generado por `medir_tiempos.py` desde `guion.json`. Es lo que lee el navegador; no se edita a mano. |
 | `scene-base.js` | Copia de la escena original antes del rediseño del local. |
 
 ### `models/`
@@ -130,7 +154,9 @@ Si cambias el guion, actualiza también los textos de `src/subtitles.js` y la li
 
 | Archivo | Descripción |
 |---|---|
-| `generar_voces.py` | Genera las 7 pistas de voz con edge-tts a partir del guion. |
+| `construir.py` | Ejecuta los tres pasos siguientes en orden. |
+| `guion.py` | Lee y valida `guion.json` (módulo compartido). |
+| `generar_voces.py` | Genera una pista de voz por línea con ElevenLabs; solo las nuevas o modificadas. |
 | `unir_audios.py` | Concatena las pistas con FFmpeg en `audio_completo.mp3`. |
 | `medir_tiempos.py` | Mide la duración de cada pista con FFprobe y escribe `src/timeline.json`. |
 
