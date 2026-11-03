@@ -51,7 +51,8 @@ function getAudioVolume() {
   const vocalBins = 32;
   for (let i = 0; i < vocalBins; i++) sum += dataArray[i];
   const avg = sum / vocalBins;
-  return avg > 12 ? (avg / 255) : 0;
+  // Umbral 80/255: el ruido de fondo de las pausas llega a ~68; al hablar el nivel es de 100 a 190
+  return avg > 80 ? (avg / 255) : 0;
 }
 
 // 3. VARIABLES DE ESTADO Y CONTROL DE ACTUACIÓN

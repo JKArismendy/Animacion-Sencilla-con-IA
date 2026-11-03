@@ -28,8 +28,17 @@ export function setupCamera(width, height, extraShots = {}) {
   // Velocidad de la transición entre planos (fracción recorrida por fotograma)
   const SPEEDS = { corte: 1.0, rapida: 0.16, normal: 0.08, lenta: 0.03 };
 
+  const BASE_FOV = 40;
+  const DEG = Math.PI / 180;
+  const ease = (p) => p * p * p * (p * (p * 6 - 15) + 10); // arranque y llegada suaves
+
+  // Estado actual de la cámara: posición, punto de mira, zoom, inclinación (roll) y órbita
   const currentPos = new THREE.Vector3().copy(targets.WIDE.pos);
   const currentLook = new THREE.Vector3().copy(targets.WIDE.look);
+  const cur = { zoom: 1, roll: 0, orbit: 0 };
+  let start = null;       // estado al empezar la orden vigente (para las transiciones con 'dura')
+  let activeKey = null;   // identifica la orden vigente para detectar cuándo cambia
+  let lastPlano = 'WIDE'; // si una orden no trae plano, se conserva este
 
   camera.position.copy(currentPos);
   camera.lookAt(currentLook);
@@ -37,18 +46,56 @@ export function setupCamera(width, height, extraShots = {}) {
   // Reloj interno para el movimiento continuo a mano alzada
   let clock = 0;
 
+  // cue: orden de cámara del timeline {t, plano?, transicion?, dura?, zoom?, inclinacion?, orbita?}
+  //      (también acepta solo el nombre de un plano). time: segundos del audio.
   return {
     camera,
-    update: (shotType, transition = 'normal') => {
+    update: (cue = 'WIDE', time = 0) => {
       // Avanzar tiempo del pulso humano
       clock += 0.016; // Aprox. 60 FPS
 
-      const target = targets[shotType] || targets.WIDE;
+      if (typeof cue === 'string') cue = { t: -1, plano: cue };
+      const plano = cue.plano ?? lastPlano;
+      lastPlano = plano;
+      const target = targets[plano] || targets.WIDE;
+      const goal = {
+        zoom: cue.zoom ?? 1,
+        roll: (cue.inclinacion ?? 0) * DEG,
+        orbit: (cue.orbita ?? 0) * DEG
+      };
 
-      // 1. Interpolación suave de transición entre planos
-      const speed = SPEEDS[transition] ?? SPEEDS.normal;
-      currentPos.lerp(target.pos, speed);
-      currentLook.lerp(target.look, speed);
+      // Al cambiar de orden se guarda el punto de partida
+      const key = `${cue.t}|${cue.plano}`;
+      if (key !== activeKey) {
+        activeKey = key;
+        start = { pos: currentPos.clone(), look: currentLook.clone(), ...cur };
+      }
+
+      if (cue.dura > 0) {
+        // 1a. Movimiento con duración exacta en segundos (zoom, empuje, órbita...)
+        const e = ease(Math.min(1, Math.max(0, (time - cue.t) / cue.dura)));
+        currentPos.lerpVectors(start.pos, target.pos, e);
+        currentLook.lerpVectors(start.look, target.look, e);
+        for (const k of ['zoom', 'roll', 'orbit']) cur[k] = start[k] + (goal[k] - start[k]) * e;
+      } else {
+        // 1b. Interpolación suave de transición entre planos (por fotograma)
+        const speed = SPEEDS[cue.transicion] ?? SPEEDS.normal;
+        currentPos.lerp(target.pos, speed);
+        currentLook.lerp(target.look, speed);
+        for (const k of ['zoom', 'roll', 'orbit']) cur[k] += (goal[k] - cur[k]) * speed;
+      }
+
+      // Zoom: cambia el campo de visión
+      const fov = BASE_FOV / cur.zoom;
+      if (Math.abs(camera.fov - fov) > 1e-4) {
+        camera.fov = fov;
+        camera.updateProjectionMatrix();
+      }
+
+      // Órbita: gira la cámara alrededor del punto de mira (grados sobre el eje vertical)
+      const orbitPos = cur.orbit
+        ? currentPos.clone().sub(currentLook).applyAxisAngle(new THREE.Vector3(0, 1, 0), cur.orbit).add(currentLook)
+        : currentPos;
 
       // 2. Ruido errático multicapa (superposición de frecuencias asimétricas)
       // Capa lenta: deriva natural del cuerpo/respiración del camarógrafo
@@ -64,9 +111,9 @@ export function setupCamera(width, height, extraShots = {}) {
 
       // 3. Aplicar desfase a la posición de la cámara
       camera.position.set(
-        currentPos.x + totalShakeX,
-        currentPos.y + totalShakeY,
-        currentPos.z + (Math.sin(clock * 1.1) * 0.005)
+        orbitPos.x + totalShakeX,
+        orbitPos.y + totalShakeY,
+        orbitPos.z + (Math.sin(clock * 1.1) * 0.005)
       );
 
       // 4. El punto de enfoque (lookAt) también tiene un micro-arrastre sutil
@@ -77,7 +124,7 @@ export function setupCamera(width, height, extraShots = {}) {
       );
 
       // 5. Inclinación involuntaria de muñeca (Roll leve en el eje Z)
-      camera.rotation.z = Math.sin(clock * 1.3) * 0.006 + Math.cos(clock * 3.7) * 0.002;
+      camera.rotation.z = Math.sin(clock * 1.3) * 0.006 + Math.cos(clock * 3.7) * 0.002 + cur.roll;
     }
   };
 }

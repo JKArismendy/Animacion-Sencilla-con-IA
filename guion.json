@@ -1,15 +1,23 @@
 {
   "titulo": "Episodio 1 - El ratio del café",
+  "motor": "chatterbox",
+  "idioma": "es",
   "modelo": "eleven_multilingual_v2",
 
   "personajes": {
     "Samario": {
+      "referencia": "audio/referencia/samario.wav",
+      "exaggeration": 0.5,
+      "cfg_weight": 0.5,
       "voz_id": "YExhVa4bZONzeingloMX",
       "stability": 0.55,
       "similarity_boost": 0.80,
       "style": 0.15
     },
     "Tostadito": {
+      "referencia": "audio/referencia/tostadito.wav",
+      "exaggeration": 0.7,
+      "cfg_weight": 0.4,
       "voz_id": "ajOR9IDAaubDK5qtLUqQ",
       "stability": 0.35,
       "similarity_boost": 0.80,
@@ -25,13 +33,16 @@
     },
     {
       "personaje": "Tostadito",
-      "texto": "¡Total! Me dicen 'usa un ratio 1:16 con extracción de dos minutos'... ¡y yo solo quería que me tomaran rico en el desayuno!",
+      "texto": "¡Total! Me dicen 'usa un ratio 1 16 con extracción de dos minutos'... ¡y yo solo quería que me tomaran rico en el desayuno!",
       "camara": "CUP"
     },
     {
       "personaje": "Samario",
       "texto": "El ratio no es física cuántica. Es exactamente igual a cocinar arroz o ponerle sal a una sopa.",
-      "camara": "SAMARIO"
+      "camara": [
+        { "en": 0.0, "plano": "SAMARIO" },
+        { "en": 0.1, "zoom": 1.5, "dura": 4 }
+      ]
     },
     {
       "personaje": "Tostadito",
@@ -41,11 +52,7 @@
     {
       "personaje": "Samario",
       "texto": "Regla de oro estándar: por cada cucharada sopera colmada de café, una taza normal de agua.",
-      "camara": [
-        { "en": 0.0, "plano": "SAMARIO" },
-        { "en": 0.5, "plano": "CUP", "transicion": "rapida" },
-        { "en": 0.8, "plano": "SAMARIO" }
-      ],
+      "camara": "SAMARIO",
       "acciones": [
         { "en": 0.5, "dura": 0.8, "quien": "Tostadito", "gesto": "saltar" }
       ]
@@ -58,7 +65,7 @@
     {
       "personaje": "Tostadito",
       "texto": "¡Y no me dejen enfriar en el mesón! Comenta cómo lo preparas tú en casa.",
-      "camara": "WIDE"
+      "camara": { "plano": "WIDE", "orbita": 15, "zoom": 1.15, "dura": 5 }
     }
   ]
 }

@@ -210,7 +210,7 @@
       if (!audioEl.paused && !audioEl.ended) {
         const t = audioEl.currentTime;
         const shot = updateActors(t, samario, tostadito);
-        updateCam(shot.plano, shot.transicion);
+        updateCam(shot, t);
         subs.update(t);
       } else {
         updateCam("WIDE");

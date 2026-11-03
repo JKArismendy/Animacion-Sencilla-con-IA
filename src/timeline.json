@@ -1,104 +1,103 @@
 {
   "titulo": "Episodio 1 - El ratio del café",
-  "duracion": 28.0,
+  "duracion": 43.84,
   "planos": {},
   "lineas": [
     {
       "speaker": "Samario",
       "texto": "¿Por qué la gente cree que hacer buen café es un examen de cálculo universitario?",
       "start": 0.0,
-      "end": 4.0
+      "end": 4.96
     },
     {
       "speaker": "Tostadito",
-      "texto": "¡Total! Me dicen 'usa un ratio 1:16 con extracción de dos minutos'... ¡y yo solo quería que me tomaran rico en el desayuno!",
-      "start": 4.0,
-      "end": 8.0
+      "texto": "¡Total! Me dicen 'usa un ratio 1 16 con extracción de dos minutos'... ¡y yo solo quería que me tomaran rico en el desayuno!",
+      "start": 4.96,
+      "end": 13.8
     },
     {
       "speaker": "Samario",
       "texto": "El ratio no es física cuántica. Es exactamente igual a cocinar arroz o ponerle sal a una sopa.",
-      "start": 8.0,
-      "end": 12.0
+      "start": 13.8,
+      "end": 20.32
     },
     {
       "speaker": "Tostadito",
       "texto": "Básicamente, el ratio es cuántos amigos invito a la taza: si vienen pocos, la fiesta muere.",
-      "start": 12.0,
-      "end": 16.0
+      "start": 20.32,
+      "end": 27.52
     },
     {
       "speaker": "Samario",
       "texto": "Regla de oro estándar: por cada cucharada sopera colmada de café, una taza normal de agua.",
-      "start": 16.0,
-      "end": 20.0
+      "start": 27.52,
+      "end": 33.56
     },
     {
       "speaker": "Samario",
       "texto": "Tu paladar manda, no la báscula.",
-      "start": 20.0,
-      "end": 24.0
+      "start": 33.56,
+      "end": 38.08
     },
     {
       "speaker": "Tostadito",
       "texto": "¡Y no me dejen enfriar en el mesón! Comenta cómo lo preparas tú en casa.",
-      "start": 24.0,
-      "end": 28.0
+      "start": 38.08,
+      "end": 43.84
     }
   ],
   "camara": [
     {
       "t": 0.0,
+      "transicion": "normal",
+      "plano": "WIDE"
+    },
+    {
+      "t": 4.96,
+      "transicion": "normal",
+      "plano": "CUP"
+    },
+    {
+      "t": 13.8,
+      "transicion": "normal",
+      "plano": "SAMARIO"
+    },
+    {
+      "t": 14.452,
+      "transicion": "normal",
+      "zoom": 1.5,
+      "dura": 4.0
+    },
+    {
+      "t": 20.32,
+      "transicion": "normal",
+      "plano": "CUP"
+    },
+    {
+      "t": 27.52,
+      "transicion": "normal",
+      "plano": "SAMARIO"
+    },
+    {
+      "t": 33.56,
+      "transicion": "normal",
+      "plano": "WIDE"
+    },
+    {
+      "t": 38.08,
+      "transicion": "normal",
       "plano": "WIDE",
-      "transicion": "normal"
-    },
-    {
-      "t": 4.0,
-      "plano": "CUP",
-      "transicion": "normal"
-    },
-    {
-      "t": 8.0,
-      "plano": "SAMARIO",
-      "transicion": "normal"
-    },
-    {
-      "t": 12.0,
-      "plano": "CUP",
-      "transicion": "normal"
-    },
-    {
-      "t": 16.0,
-      "plano": "SAMARIO",
-      "transicion": "normal"
-    },
-    {
-      "t": 18.0,
-      "plano": "CUP",
-      "transicion": "rapida"
-    },
-    {
-      "t": 19.2,
-      "plano": "SAMARIO",
-      "transicion": "normal"
-    },
-    {
-      "t": 20.0,
-      "plano": "WIDE",
-      "transicion": "normal"
-    },
-    {
-      "t": 24.0,
-      "plano": "WIDE",
-      "transicion": "normal"
+      "zoom": 1.15,
+      "dura": 5.0,
+      "orbita": 15.0
     }
   ],
   "acciones": [
     {
       "quien": "Tostadito",
       "gesto": "saltar",
-      "start": 18.0,
-      "end": 18.8,
+      "start": 30.54,
+      "end": 31.34,
       "fuerza": 1.0
     }
   ]

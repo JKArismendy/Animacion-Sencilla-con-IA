@@ -1,6 +1,6 @@
 # CoffeeTales · Motor 3D cinemático
 
-Generador de cortos animados verticales (1080 × 1920, formato Reels/TikTok/Shorts) hecho enteramente con código. Dos personajes conversan en una cafetería sobre cómo preparar un buen café: **Samario**, el barista, y **Tostadito**, una taza parlante. Las voces se generan con síntesis de voz, la animación se sincroniza con el audio en tiempo real y el resultado se graba directamente desde el navegador.
+Generador de cortos animados verticales (1080 × 1920, formato Reels/TikTok/Shorts) hecho enteramente con código. Dos personajes conversan en una cafetería sobre cómo preparar un buen café: **Samario**, el barista, y **Tostadito**, una taza parlante. Las voces las generas tú: grabas un sample de tu propia voz para cada personaje y la clonación corre en tu equipo (Chatterbox), con sliders para controlar la expresividad. La animación se sincroniza con el audio en tiempo real y el resultado se graba directamente desde el navegador.
 
 Todo el proyecto corre en el navegador: no hay *build*, ni *bundler*, ni dependencias de Node.
 
@@ -27,7 +27,8 @@ Todo el proyecto corre en el navegador: no hay *build*, ni *bundler*, ni depende
 | **Web Audio API** | Lectura del volumen | `AnalyserNode` (FFT 256) sobre las frecuencias de la voz; ese valor mueve las bocas |
 | **Canvas 2D + `CanvasTexture`** | Texturas y subtítulos procedurales | Ladrillo, madera, pizarra, etiquetas, café y letrero se dibujan por código; los subtítulos se dibujan en una capa ortográfica sobre el render |
 | **`captureStream` + `MediaRecorder`** | Grabación del video | Captura el canvas a 30 fps junto con el audio, en VP9/Opus a 12 Mbps, y descarga un `.webm` |
-| **ElevenLabs** (API) | Voces | Modelo `eleven_multilingual_v2` con una voz por personaje, definida en `guion.json`; la clave va en `.env` |
+| **Chatterbox** (local) | Voces | Clona la voz de un sample WAV por personaje (`audio/referencia/`) y genera los diálogos en tu PC, sin API ni créditos |
+| **ElevenLabs** (API, opcional) | Voces | Motor alternativo (`"motor": "elevenlabs"` en `guion.json`); la clave va en `.env` y su plan debe permitir las voces elegidas |
 | **FFmpeg / FFprobe** | Audio y video | Une los diálogos, mide duraciones y convierte el `.webm` final a `.mp4` |
 
 ### Cómo funciona la sincronización
@@ -53,27 +54,76 @@ Abre `http://localhost:8000`, pulsa **Iniciar / Grabar Video 3D** y espera a que
 ### 2. Convertir a MP4
 
 ```bash
-ffmpeg -i CoffeeTales_Animacion3D.webm -c:v libx264 -crf 18 -c:a aac CoffeeTales_Final.mp4
+ffmpeg -i CoffeeTales_Animacion3D.webm -vf fps=30 -c:v libx264 -crf 18 -c:a aac CoffeeTales_Final.mp4
 ```
 
-### 3. Escribir el guion y generar las voces
+`-vf fps=30` fuerza **30 fotogramas por segundo constantes**. Es necesario porque el `.webm` del navegador tiene una cadencia irregular: `captureStream(30)` captura *como máximo* 30 fps, y si el equipo renderiza más lento a 1080 × 1920 con bloom y grano, el archivo trae menos fotogramas. Sin ese filtro, ffmpeg elige la cadencia por su cuenta y el mp4 puede quedar con menos fotogramas de los que se veían en el navegador.
+
+> Esto fija la cadencia pero no inventa imagen nueva: si el navegador solo renderizó, por ejemplo, 20 fps reales, el mp4 tendrá 30 fps con fotogramas repetidos. Para ver los fps reales de la grabación: `ffprobe -v error -select_streams v:0 -count_packets -show_entries stream=nb_read_packets:format=duration -of default=nw=1 CoffeeTales_Animacion3D.webm` (fps = `nb_read_packets` ÷ `duration`).
+
+### 3. Voces con Chatterbox (local)
+
+Las voces salen de **tus propias grabaciones**. Grabas un sample de voz por personaje, Chatterbox lo clona en tu equipo y, con unos deslizadores, controlas cómo suena. Sin API, sin cuentas ni créditos, y todo el control es tuyo. No hay que "subir" nada a ningún sitio: el WAV se usa directamente en cada generación.
+
+**1. Crea el entorno (una sola vez).** Chatterbox necesita Python 3.11 (el del sistema puede ser más nuevo) y corre en CPU si no tienes GPU NVIDIA:
+
+```bash
+winget install Python.Python.3.11
+py -3.11 -m venv .venv
+.venv\Scripts\pip install -r scripts/requirements-chatterbox.txt
+```
+
+La primera vez descarga el modelo (unos GB).
+
+**2. Graba tus samples** (o hazlo desde la pantalla de prueba del paso 3) y guárdalos como `audio/referencia/samario.wav` y `audio/referencia/tostadito.wav`:
+- 10 a 20 segundos cada uno (mínimo ~6), en **español**, un solo hablante, sitio silencioso, sin música ni eco.
+- Volumen moderado: que el pico no llegue a 0 dB, porque la saturación se nota en la voz clonada.
+- Samario: tu voz natural. Tostadito: actúa la voz (aguda, animada, con energía). Chatterbox imita el estilo del sample, así que la actuación del sample es lo que más influye.
+- WAV mono. Si tu grabadora da m4a/mp3, conviértelo: `ffmpeg -i grabacion.m4a -ac 1 samario.wav`.
+
+**3. Pantalla de prueba con deslizadores.** Para escuchar y afinar antes de generar el episodio:
+
+```bash
+.venv\Scripts\python scripts\probar_chatterbox.py
+```
+
+Abre `http://127.0.0.1:7860`. Ahí puedes grabar con el micrófono (o subir un audio), escribir un texto y pulsar **Generar**. Los deslizadores controlan el resultado:
+
+| Control | Qué hace |
+|---|---|
+| **Expresividad** (`exaggeration`) | 0.5 es neutro; más alto = más emotivo y exagerado. |
+| **Ritmo** (`cfg_weight`) | 0.5 es normal; más bajo = habla más pausada. |
+| **Semilla** | La misma semilla da el mismo resultado; cámbiala si quieres otra versión de la misma frase. |
+
+El botón **Guardar sample** guarda tu grabación directamente en `audio/referencia/` como el sample de Samario o de Tostadito.
+
+**4. Lleva tus valores al guion.** Cuando algo te guste, copia los valores a `guion.json`, en cada personaje: `referencia`, `exaggeration`, `cfg_weight` y, si quieres, `semilla`. Cada línea usa una semilla fija, así que regenerar da el mismo resultado.
+
+#### Alternativa: ElevenLabs (opcional)
+
+Con `"motor": "elevenlabs"` en `guion.json` las voces se piden a la API de ElevenLabs. Cada personaje necesita su `voz_id` y la clave va en un archivo `.env` (`ELEVENLABS_API_KEY=tu_clave`). Ojo: **el plan gratuito no permite usar por API las voces de la librería**, solo las predeterminadas. Chatterbox es el motor por defecto y el recomendado.
+
+### 4. Escribir el guion y generar las voces
 
 **Todo el guion vive en `guion.json`**: quién habla, qué dice, qué hace la cámara y qué gestos hacen los personajes.
-Requiere Python 3 y FFmpeg, y un archivo `.env` en la raíz con `ELEVENLABS_API_KEY=tu_clave`.
+Requiere Python 3, FFmpeg y el entorno y los samples del paso anterior.
 
 ```bash
 python scripts/construir.py            # voces -> unir audios -> tiempos (solo regenera lo que cambió)
 python scripts/construir.py --force    # regenera todas las voces
 ```
 
-`construir.py` ejecuta en orden `generar_voces.py`, `unir_audios.py` y `medir_tiempos.py`, que también puedes lanzar por separado desde cualquier carpeta. Las voces ya generadas no se vuelven a pedir (y no gastan créditos) mientras no cambies su texto, voz o líneas vecinas.
+`construir.py` ejecuta en orden `generar_voces.py`, `unir_audios.py` y `medir_tiempos.py`, que también puedes lanzar por separado desde cualquier carpeta. Las voces ya generadas no se vuelven a generar mientras no cambies su texto, su sample o sus parámetros (se anotan en `audio/manifest.json`). Una voz clonada en CPU tarda de unos 20 segundos a un minuto por línea.
 
 #### Formato de `guion.json`
 
 ```json
 {
-  "modelo": "eleven_multilingual_v2",
-  "personajes": { "Samario": { "voz_id": "...", "stability": 0.55, "style": 0.15 }, "Tostadito": { ... } },
+  "motor": "chatterbox",
+  "personajes": {
+    "Samario":   { "referencia": "audio/referencia/samario.wav",   "exaggeration": 0.5, "cfg_weight": 0.5 },
+    "Tostadito": { "referencia": "audio/referencia/tostadito.wav", "exaggeration": 0.7, "cfg_weight": 0.4 }
+  },
   "planos": { "PICADO": { "pos": [0, 3, 2], "mira": [0, 1.3, 0] } },
   "lineas": [
     {
@@ -93,6 +143,24 @@ python scripts/construir.py --force    # regenera todas las voces
 - **`camara`**: un plano (`"camara": "CUP"`) o una lista de cambios. `en` es **cuánto de la línea ha pasado** (0 = inicio, 0.5 = mitad, 1 = final), así que sigue siendo válido aunque cambie la duración del audio. Si una línea no tiene `camara`, la cámara se queda como estaba.
 - **Planos**: `WIDE`, `SAMARIO`, `CUP`, más los que definas en `planos` (`pos` = dónde está la cámara, `mira` = a dónde apunta).
 - **`transicion`**: `corte` (instantánea), `rapida`, `normal` (por defecto) o `lenta`.
+- **Movimientos creativos de cámara** (opciones de cada cambio de `camara`; todas opcionales):
+
+  | Opción | Qué hace |
+  |---|---|
+  | `zoom` | Acercamiento por campo de visión: `1` normal, `1.5` más cerca, `0.8` más abierto (0.25 a 4) |
+  | `dura` | Segundos que tarda el movimiento, con arranque y llegada suaves. Sin `dura` se usa `transicion` |
+  | `orbita` | Grados que la cámara gira alrededor del punto de mira (positivo o negativo) |
+  | `inclinacion` | Grados de ladeo del encuadre (plano holandés) |
+  | `plano` | Si lo omites, la cámara conserva el plano actual y solo aplica zoom, órbita o inclinación |
+
+  Cada orden define el estado completo: lo que no indiques vuelve a su valor normal (`zoom` 1, `orbita` 0, `inclinacion` 0). Ejemplos:
+
+  ```json
+  { "en": 0.1, "zoom": 1.5, "dura": 4 }                       // acercamiento lento de 4 s
+  { "en": 0.0, "plano": "CUP", "zoom": 1.3, "dura": 3 }       // vuelo hasta la taza con zoom
+  { "plano": "WIDE", "orbita": 20, "dura": 6 }                // giro alrededor de la escena
+  { "en": 0.5, "inclinacion": 8, "transicion": "rapida" }     // encuadre ladeado
+  ```
 - **`acciones`**: gestos puntuales. `en` igual que arriba; `dura` en **segundos** (1 por defecto); `quien` por defecto es quien habla; `fuerza` opcional (1 = normal).
 - **Gestos de Samario**: `asentir`, `negar`, `mirar_taza`, `mirar_frente`, `gesticular`. **De Tostadito**: `saltar`, `ladear`, `temblar`, `mirar_samario`, `mirar_frente`.
 - Los scripts validan el archivo y avisan con el número de línea si algo está mal escrito.
@@ -103,6 +171,7 @@ python scripts/construir.py --force    # regenera todas las voces
 .
 ├── index.html            Página, render, postprocesado y grabación
 ├── guion.json            EL GUION: texto, voces, cámara y gestos
+├── .claude/skills/coffeetales/  Guía del proyecto para Claude Code (SKILL.md)
 ├── src/
 │   ├── scene.js          Escenografía y luces
 │   ├── camera.js         Planos de cámara
@@ -115,8 +184,11 @@ python scripts/construir.py --force    # regenera todas las voces
 │   ├── tostadito.js      Taza parlante
 │   ├── samario-base.js   Versión original de Samario (respaldo)
 │   └── tostadito-base.js Versión original de Tostadito (respaldo)
-├── scripts/              Scripts de Python para audio y tiempos
+├── scripts/              Scripts de Python para voces, audio y tiempos
 ├── audio/                Diálogos en MP3 y audio completo
+│   └── referencia/       Tus samples de voz (samario.wav, tostadito.wav)
+├── .venv/                Entorno de Chatterbox (no se versiona)
+├── .env                  Clave de ElevenLabs, solo si la usas (no se versiona)
 └── docs/                 Documentación adicional
 ```
 
@@ -129,7 +201,7 @@ python scripts/construir.py --force    # regenera todas las voces
 | `index.html` | Monta el lienzo 1080 × 1920, el renderizador, el postprocesado y el botón que graba el video. Ejecuta el bucle de animación. |
 | `CoffeeTales_Animacion3D.webm` | Video crudo grabado desde el navegador. |
 | `CoffeeTales_Final.mp4` | Video final convertido con FFmpeg. |
-| `esquema de luces Video.jpg` | Imagen de referencia del esquema de luces. |
+| `esquema de luces Video.jpg` | Ilustración del esquema de luces generada con IA. Sirve como idea visual, **no es exacta**: varios valores no coinciden con el código (por ejemplo intensidades de `rimLightCyan` y `ambientLight`). Para valores fiables usa `docs/esquema de luces video.jpg` y `docs/ILUMINACION.md`. |
 
 ### `src/`
 
@@ -156,7 +228,10 @@ python scripts/construir.py --force    # regenera todas las voces
 |---|---|
 | `construir.py` | Ejecuta los tres pasos siguientes en orden. |
 | `guion.py` | Lee y valida `guion.json` (módulo compartido). |
-| `generar_voces.py` | Genera una pista de voz por línea con ElevenLabs; solo las nuevas o modificadas. |
+| `generar_voces.py` | Genera una pista de voz por línea (Chatterbox o ElevenLabs); solo las nuevas o modificadas. |
+| `motor_chatterbox.py` | Lo ejecuta `generar_voces.py` dentro de `.venv`: clona la voz del sample y escribe los MP3. |
+| `probar_chatterbox.py` | Pantalla web local para grabar samples, probar frases y afinar con los deslizadores. |
+| `requirements-chatterbox.txt` | Dependencias del entorno de Chatterbox. |
 | `unir_audios.py` | Concatena las pistas con FFmpeg en `audio_completo.mp3`. |
 | `medir_tiempos.py` | Mide la duración de cada pista con FFprobe y escribe `src/timeline.json`. |
 
@@ -164,10 +239,16 @@ python scripts/construir.py --force    # regenera todas las voces
 
 | Archivo | Descripción |
 |---|---|
-| `audio/*.mp3` | Los 7 diálogos individuales y el audio completo que reproduce la página. |
-| `docs/ILUMINACION.md` | Esquema de luces con nombres, valores, ubicación en el código y mapa en planta. |
+| `audio/NN_personaje.mp3` | Los diálogos individuales (uno por línea del guion) y `audio_completo.mp3`, que reproduce la página. |
+| `audio/referencia/` | Tus samples de voz. Son grabaciones de tu voz: decide si los subes al repositorio o los ignoras con `.gitignore`. |
+| `audio/manifest.json` | Registro de qué línea se generó con qué texto y ajustes, para no regenerar lo que no cambió. |
+| `docs/ILUMINACION.md` | Esquema de luces con nombres, valores, ubicación en el código y mapa en planta. **Ojo:** el código manda; hoy difieren el alcance de las lámparas colgantes (código `1.5`, documento `3.5`) y el color de `kickerLeft` (código `0x1485e0`, documento `0x1D4ED8`). |
+| `docs/esquema de luces video.jpg` | Diagrama técnico (vista en planta, vista lateral y leyenda de las 6 luces) dibujado con los valores de `ILUMINACION.md`; hereda esas dos diferencias. Las alturas de los personajes y de `warmLight` son aproximadas. |
 
 ## Notas
 
 - Los personajes se animan solo mientras suena el audio; antes de grabar quedan en reposo.
-- `ffmpeg.exe` y la carpeta `0ComandosShell/` no se versionan (están en `.gitignore`); hay que tener FFmpeg instalado.
+- **Postprocesado** (queda dentro del video grabado, no se puede quitar después): bloom (`UnrealBloomPass`: fuerza 0.35, radio 0.45, umbral 0.75), grano de película (`FilmPass`: 0.18, 0.025, 648) y tone mapping ACES Filmic con exposición 1.05; están en `index.html`. Los subtítulos se dibujan después de los filtros, por eso salen nítidos.
+- **Boca y ruido de fondo:** la boca se abre cuando el nivel del analizador supera un umbral (`80` sobre 255, en `getAudioVolume()` de `src/audio-sync.js`). Las voces de Chatterbox tienen un leve ruido de fondo en las pausas (nivel ~25, hasta ~70) y al hablar el nivel es de 100 a 190. Si ves bocas que se mueven en las pausas, sube el umbral; si se quedan quietas con voz suave, bájalo.
+- Si quieres conservar versiones antiguas de las voces, guárdalas fuera de `audio/` (o en una carpeta ignorada): los scripts solo usan los MP3 numerados, `audio_completo.mp3`, `manifest.json` y `referencia/`.
+- `ffmpeg.exe`, la carpeta `0ComandosShell/`, `.venv/` y `.env` no se versionan (están en `.gitignore`); hay que tener FFmpeg instalado.

@@ -46,7 +46,8 @@ def main():
             "end": round(t + dur, 3),
         })
         for c in camara_de(linea):
-            camara.append({"t": round(t + c["en"] * dur, 3), "plano": c["plano"], "transicion": c["transicion"]})
+            orden = {k: v for k, v in c.items() if k != "en"}
+            camara.append({"t": round(t + c["en"] * dur, 3), **orden})
         for a in linea.get("acciones", []):
             inicio = t + float(a.get("en", 0.0)) * dur
             acciones.append({
