@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>CoffeeTales - Motor 3D Cinemático</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #06080D;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: system-ui, sans-serif;
+      gap: 15px;
+    }
+    #viewport-container {
+      position: relative;
+      width: 360px;
+      height: 640px;
+      box-shadow: 0 25px 60px rgba(0,0,0,0.95);
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid #1A2233;
+    }
+    #subtitles {
+      position: absolute;
+      bottom: 25px;
+      left: 18px;
+      right: 18px;
+      text-align: center;
+      color: #FFF;
+      font-weight: 700;
+      font-size: 14px;
+      background: rgba(10, 14, 22, 0.88);
+      backdrop-filter: blur(8px);
+      padding: 10px 14px;
+      border-radius: 8px;
+      line-height: 1.35;
+      z-index: 20;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    button {
+      background: #E76F51;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      font-weight: 700;
+      font-size: 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(231, 111, 81, 0.4);
+    }
+    button:disabled { background: #333; cursor: not-allowed; box-shadow: none; }
+  </style>
+
+  <!-- Three.js Base -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+  <!-- Módulos de Postprocesado (Compatibles r128) -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/FilmShader.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/FilmPass.js"></script>
+</head>
+<body>
+
+  <div id="viewport-container">
+    <div id="subtitles">Listo para reproducir / grabar</div>
+  </div>
+  <button id="btn-record">🎬 Iniciar / Grabar Video 3D</button>
+
+  <audio id="main-audio" preload="auto">
+    <source src="audio_completo.mp3" type="audio/mp3">
+    <source src="audio/audio_completo.mp3" type="audio/mp3">
+  </audio>
+
+  <script type="module">
+    import { setupScene } from './src/scene.js';
+    import { setupCamera } from './src/camera.js';
+    import { updateActors, setupAudioAnalyser } from './src/audio-sync.js';
+    import { createSamario } from './models/samario.js';
+    //import { createLucas } from './models/lucas.js';
+    import { createTostadito } from './models/tostadito.js';
+
+    const container = document.getElementById('viewport-container');
+    const subBox = document.getElementById('subtitles');
+    const btnRecord = document.getElementById('btn-record');
+    const audioEl = document.getElementById('main-audio');
+
+    // 1. Configuración de Lienzo y Renderizador (1080 x 1920)
+    const WIDTH = 1080, HEIGHT = 1920;
+    const scene = setupScene();
+    const { camera, update: updateCam } = setupCamera(WIDTH, HEIGHT);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+    renderer.setSize(WIDTH, HEIGHT);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.05;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    renderer.domElement.style.width = "100%";
+    renderer.domElement.style.height = "100%";
+    container.appendChild(renderer.domElement);
+
+    // 2. CADENA DE POSTPROCESADO (EffectComposer)
+    const composer = new THREE.EffectComposer(renderer);
+
+    // Pase 1: Escena 3D base
+    const renderPass = new THREE.RenderPass(scene, camera);
+    composer.addPass(renderPass);
+
+    // Pase 2: Bloom suave (resplandor de luces y reflejos)
+    // Parámetros: resolución, fuerza, radio, umbral
+    const bloomPass = new THREE.UnrealBloomPass(
+      new THREE.Vector2(WIDTH, HEIGHT),
+      0.35,  // Fuerza sutil (evita empañar la escena)
+      0.45,  // Radio de dispersión
+      0.75   // Umbral: solo brillan las altas luces
+    );
+    composer.addPass(bloomPass);
+
+    // Pase 3: Grano de película (Film Grain) que unifica el render
+    // Parámetros: intensidad de ruido, intensidad de líneas scanline, cantidad de líneas, escala de grises
+    const filmPass = new THREE.FilmPass(0.18, 0.025, 648, false);
+    composer.addPass(filmPass);
+
+    // 3. Montar Personajes
+    const samario = createSamario();
+    //const lucas = createLucas();
+    const tostadito = createTostadito();
+    scene.add(samario.group, tostadito.group);
+
+    updateCam("WIDE");
+
+    // 4. Grabador de Video
+    let isAudioSetup = false;
+    let audioContextObj = null;
+
+    btnRecord.addEventListener('click', async () => {
+      btnRecord.disabled = true;
+
+      try {
+        if (!isAudioSetup) {
+          audioContextObj = setupAudioAnalyser(audioEl);
+          isAudioSetup = true;
+        }
+        if (audioContextObj.audioCtx.state === 'suspended') {
+          await audioContextObj.audioCtx.resume();
+        }
+
+        const dest = audioContextObj.audioCtx.createMediaStreamDestination();
+        audioContextObj.source.connect(dest);
+
+        const canvasStream = renderer.domElement.captureStream(30);
+        const combined = new MediaStream([
+          ...canvasStream.getVideoTracks(),
+          ...dest.stream.getAudioTracks()
+        ]);
+
+        const recorder = new MediaRecorder(combined, { 
+          mimeType: 'video/webm;codecs=vp9,opus', 
+          videoBitsPerSecond: 12000000 // 12 Mbps para nitidez 1080p
+        });
+
+        const chunks = [];
+        recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+        recorder.onstop = () => {
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(new Blob(chunks, { type: 'video/webm' }));
+          a.download = "CoffeeTales_Episodio1.webm";
+          a.click();
+          btnRecord.disabled = false;
+          subBox.innerHTML = "¡Video final procesado!";
+        };
+
+        recorder.start();
+        await audioEl.play();
+        subBox.innerHTML = "Grabando con postprocesado activo...";
+
+        audioEl.onended = () => recorder.stop();
+      } catch (err) {
+        console.error("Error en render:", err);
+        subBox.innerHTML = "Error al iniciar. Revisa F12.";
+        btnRecord.disabled = false;
+      }
+    });
+
+    // 5. Bucle Principal con Renderizado por Compositor
+    function animate() {
+      requestAnimationFrame(animate);
+
+      if (!audioEl.paused && !audioEl.ended) {
+        const t = audioEl.currentTime;
+        const activeShot = updateActors(t, samario, tostadito);
+        updateCam(activeShot);
+      } else {
+        updateCam("WIDE");
+      }
+
+      // El renderizado ahora pasa por composer en vez de renderer directo
+      composer.render();
+    }
+
+    animate();
+  </script>
+</body>
+</html>

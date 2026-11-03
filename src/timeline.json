@@ -1,0 +1,44 @@
+[
+  {
+    "speaker": "Lucas",
+    "shot": "WIDE",
+    "start": 0.0,
+    "end": 4.344
+  },
+  {
+    "speaker": "Tostadito",
+    "shot": "CUP",
+    "start": 4.344,
+    "end": 13.512
+  },
+  {
+    "speaker": "Lucas",
+    "shot": "LUCAS",
+    "start": 13.512,
+    "end": 20.304
+  },
+  {
+    "speaker": "Tostadito",
+    "shot": "CUP",
+    "start": 20.304,
+    "end": 27.072
+  },
+  {
+    "speaker": "Lucas",
+    "shot": "LUCAS",
+    "start": 27.072,
+    "end": 33.072
+  },
+  {
+    "speaker": "Lucas",
+    "shot": "WIDE",
+    "start": 33.072,
+    "end": 35.88
+  },
+  {
+    "speaker": "Tostadito",
+    "shot": "WIDE",
+    "start": 35.88,
+    "end": 41.232
+  }
+]
