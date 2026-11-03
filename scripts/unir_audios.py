@@ -2,12 +2,12 @@ import os
 import subprocess
 
 DIALOGOS = [
-    "lucas_1.mp3",
+    "samario_1.mp3",
     "tostadito_1.mp3",
-    "lucas_2.mp3",
+    "samario_2.mp3",
     "tostadito_2.mp3",
-    "lucas_3.mp3",
-    "lucas_4.mp3",
+    "samario_3.mp3",
+    "samario_4.mp3",
     "tostadito_3.mp3"
 ]
 

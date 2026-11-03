@@ -89,7 +89,6 @@ Si cambias el guion, actualiza también los textos de `src/subtitles.js` y la li
 ├── models/
 │   ├── samario.js        Barista (personaje activo)
 │   ├── tostadito.js      Taza parlante
-│   ├── lucas.js          Barista original (sin usar)
 │   ├── samario-base.js   Versión original de Samario (respaldo)
 │   └── tostadito-base.js Versión original de Tostadito (respaldo)
 ├── scripts/              Scripts de Python para audio y tiempos
@@ -113,7 +112,7 @@ Si cambias el guion, actualiza también los textos de `src/subtitles.js` y la li
 | Archivo | Descripción |
 |---|---|
 | `scene.js` | Crea la escena completa: luces, pared de ladrillo, pizarra, ventanas, lámparas, estantes, barra trasera y barra principal con textura y letrero. |
-| `camera.js` | Define los planos `WIDE`, `LUCAS` y `CUP`, la transición suave entre ellos y la vibración de cámara en mano. |
+| `camera.js` | Define los planos `WIDE`, `SAMARIO` y `CUP`, la transición suave entre ellos y la vibración de cámara en mano. |
 | `audio-sync.js` | Calcula la línea de tiempo desde los audios, lee el volumen con Web Audio y anima a ambos personajes según quién hable. |
 | `subtitles.js` | Dibuja los subtítulos en una capa 2D sobre el render, partidos en fragmentos de hasta 6 palabras. |
 | `timeline.json` | Tiempos medidos de cada diálogo, generado por `medir_tiempos.py`. Hoy el navegador mide los suyos, así que es informativo. |
@@ -125,7 +124,6 @@ Si cambias el guion, actualiza también los textos de `src/subtitles.js` y la li
 |---|---|
 | `samario.js` | Exporta `createSamario()`: busto con pelo voxel, gafas, boca y ojos animados, miradas y brazo apoyado con mano. |
 | `tostadito.js` | Exporta `createTostadito()`: taza facetada con café, vapor, luz cálida y cara expresiva. |
-| `lucas.js` | Primer barista del proyecto, reemplazado por Samario y comentado en `index.html`. |
 | `samario-base.js`, `tostadito-base.js` | Copias de las versiones originales de cada personaje. |
 
 ### `scripts/`
@@ -145,6 +143,5 @@ Si cambias el guion, actualiza también los textos de `src/subtitles.js` y la li
 
 ## Notas
 
-- Los parámetros `lucas` de `updateActors` en `audio-sync.js` reciben en realidad a **Samario**; conservan el nombre original por compatibilidad.
 - Los personajes se animan solo mientras suena el audio; antes de grabar quedan en reposo.
 - `ffmpeg.exe` y la carpeta `0ComandosShell/` no se versionan (están en `.gitignore`); hay que tener FFmpeg instalado.

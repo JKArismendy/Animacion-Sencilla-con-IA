@@ -7,7 +7,7 @@ export function setupCamera(width, height) {
       pos: new THREE.Vector3(0, 1.55, 4.4), 
       look: new THREE.Vector3(0, 1.35, 0) 
     },
-    LUCAS: { 
+    SAMARIO: { 
       pos: new THREE.Vector3(-0.52, 1.82, 2.2), 
       look: new THREE.Vector3(-0.52, 1.78, 0) 
     },

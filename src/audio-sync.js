@@ -1,23 +1,23 @@
 // 1. LISTA OFICIAL Y ORDENADA DE DIÁLOGOS
 // Pon aquí las rutas exactas de los audios en el orden del episodio
 export const dialogueTracks = [
-  { file: 'audio/lucas_1.mp3',     speaker: 'Lucas',     shot: 'WIDE' },
+  { file: 'audio/samario_1.mp3',     speaker: 'Samario',     shot: 'WIDE' },
   { file: 'audio/tostadito_1.mp3', speaker: 'Tostadito', shot: 'CUP' },
-  { file: 'audio/lucas_2.mp3',     speaker: 'Lucas',     shot: 'LUCAS' },
+  { file: 'audio/samario_2.mp3',     speaker: 'Samario',     shot: 'SAMARIO' },
   { file: 'audio/tostadito_2.mp3', speaker: 'Tostadito', shot: 'CUP' },
-  { file: 'audio/lucas_3.mp3',     speaker: 'Lucas',     shot: 'LUCAS' },
-  { file: 'audio/lucas_4.mp3',     speaker: 'Lucas',     shot: 'WIDE' },
+  { file: 'audio/samario_3.mp3',     speaker: 'Samario',     shot: 'SAMARIO' },
+  { file: 'audio/samario_4.mp3',     speaker: 'Samario',     shot: 'WIDE' },
   { file: 'audio/tostadito_3.mp3', speaker: 'Tostadito', shot: 'WIDE' }
 ];
 
 // Fallback preventivo con tiempos medidos si aún no cargan los metadatos
 let timeline = [
-  { start: 0.0,  end: 3.8,  speaker: "Lucas",     shot: "WIDE" },
+  { start: 0.0,  end: 3.8,  speaker: "Samario",     shot: "WIDE" },
   { start: 3.8,  end: 11.2, speaker: "Tostadito", shot: "CUP" },
-  { start: 11.2, end: 18.2, speaker: "Lucas",     shot: "LUCAS" },
+  { start: 11.2, end: 18.2, speaker: "Samario",     shot: "SAMARIO" },
   { start: 18.2, end: 24.5, speaker: "Tostadito", shot: "CUP" },
-  { start: 24.5, end: 32.5, speaker: "Lucas",     shot: "LUCAS" },
-  { start: 32.5, end: 36.5, speaker: "Lucas",     shot: "WIDE" },
+  { start: 24.5, end: 32.5, speaker: "Samario",     shot: "SAMARIO" },
+  { start: 32.5, end: 36.5, speaker: "Samario",     shot: "WIDE" },
   { start: 36.5, end: 45.0, speaker: "Tostadito", shot: "WIDE" }
 ];
 
@@ -87,59 +87,59 @@ function getAudioVolume() {
 }
 
 // 3. VARIABLES DE ESTADO Y CONTROL DE ACTUACIÓN
-let currentLucasHeadY = 0;
-let currentLucasHeadX = 0;
-let currentLucasArm = 0;
+let currentSamarioHeadY = 0;
+let currentSamarioHeadX = 0;
+let currentSamarioArm = 0;
 let currentCupRotY = 0;
 let currentCupTiltZ = 0;
 
-export function updateActors(time, lucas, tostadito) {
+export function updateActors(time, samario, tostadito) {
   // Búsqueda estricta del diálogo activo
   const current = timeline.find(s => time >= s.start && time < s.end) || { speaker: "None", shot: "WIDE", start: time, end: time + 1 };
   const volume = getAudioVolume();
   const isSpeaking = volume > 0.02;
 
-  const isLucasTurn = (current.speaker === "Lucas");
+  const isSamarioTurn = (current.speaker === "Samario");
   const isCupTurn = (current.speaker === "Tostadito");
 
   // ==========================================
-  // --- ACTUACIÓN DE LUCAS ---
+  // --- ACTUACIÓN DE SAMARIO ---
   // ==========================================
-  let targetLucasY = 0;
-  let targetLucasX = 0;
+  let targetSamarioY = 0;
+  let targetSamarioX = 0;
   let targetArm = 0;
 
-  if (isLucasTurn) {
+  if (isSamarioTurn) {
     // HABLANDO: Mira a Tostadito (derecha), gesticula con el brazo
-    targetLucasY = 0.22;
-    targetLucasX = isSpeaking ? (Math.sin(time * 6) * 0.03) : 0;
+    targetSamarioY = 0.22;
+    targetSamarioX = isSpeaking ? (Math.sin(time * 6) * 0.03) : 0;
     targetArm = 0.20 + (volume * 0.35);
-    lucas.setJawOpen(volume * 0.12);
+    samario.setJawOpen(volume * 0.12);
   } else {
     // ESCUCHANDO / PAUSA:
-    lucas.setJawOpen(0);
+    samario.setJawOpen(0);
     targetArm = 0.0; // Brazo descansando en la barra
     
     if (isCupTurn) {
       // Mirar atentamente a Tostadito con asentimientos suaves y orgánicos
-      targetLucasY = 0.26;
-      targetLucasX = 0.04 + (Math.sin(time * 3.2) * 0.035); // Asentimiento de aprobación
+      targetSamarioY = 0.26;
+      targetSamarioX = 0.04 + (Math.sin(time * 3.2) * 0.035); // Asentimiento de aprobación
     } else {
       // Silencio general: mirada pensativa al frente
-      targetLucasY = 0.0;
-      targetLucasX = Math.sin(time * 1.5) * 0.02;
+      targetSamarioY = 0.0;
+      targetSamarioX = Math.sin(time * 1.5) * 0.02;
     }
   }
 
   // Interpolación suave
-  currentLucasHeadY += (targetLucasY - currentLucasHeadY) * 0.09;
-  currentLucasHeadX += (targetLucasX - currentLucasHeadX) * 0.09;
-  currentLucasArm   += (targetArm - currentLucasArm) * 0.09;
+  currentSamarioHeadY += (targetSamarioY - currentSamarioHeadY) * 0.09;
+  currentSamarioHeadX += (targetSamarioX - currentSamarioHeadX) * 0.09;
+  currentSamarioArm   += (targetArm - currentSamarioArm) * 0.09;
 
   // Respiración viva en el torso
   const breath = Math.sin(time * 2.0) * 0.003;
-  lucas.setHeadAngles(currentLucasHeadY, currentLucasHeadX, breath);
-  if (lucas.setArmGesture) lucas.setArmGesture(currentLucasArm);
+  samario.setHeadAngles(currentSamarioHeadY, currentSamarioHeadX, breath);
+  if (samario.setArmGesture) samario.setArmGesture(currentSamarioArm);
 
   // ==========================================
   // --- ACTUACIÓN DE TOSTADITO ---
@@ -149,7 +149,7 @@ export function updateActors(time, lucas, tostadito) {
   let cupBounce = 0;
 
   if (isCupTurn) {
-    // HABLANDO: Girado hacia Lucas
+    // HABLANDO: Girado hacia Samario
     targetCupY = -0.28;
     tostadito.setMouthScale(1.0 + volume * 3.5);
 

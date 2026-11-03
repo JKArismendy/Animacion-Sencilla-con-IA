@@ -3,12 +3,12 @@ import json
 import subprocess
 
 AUDIOS = [
-    {"file": "audio/lucas_1.mp3", "speaker": "Lucas", "shot": "WIDE"},
+    {"file": "audio/samario_1.mp3", "speaker": "Samario", "shot": "WIDE"},
     {"file": "audio/tostadito_1.mp3", "speaker": "Tostadito", "shot": "CUP"},
-    {"file": "audio/lucas_2.mp3", "speaker": "Lucas", "shot": "LUCAS"},
+    {"file": "audio/samario_2.mp3", "speaker": "Samario", "shot": "SAMARIO"},
     {"file": "audio/tostadito_2.mp3", "speaker": "Tostadito", "shot": "CUP"},
-    {"file": "audio/lucas_3.mp3", "speaker": "Lucas", "shot": "LUCAS"},
-    {"file": "audio/lucas_4.mp3", "speaker": "Lucas", "shot": "WIDE"},
+    {"file": "audio/samario_3.mp3", "speaker": "Samario", "shot": "SAMARIO"},
+    {"file": "audio/samario_4.mp3", "speaker": "Samario", "shot": "WIDE"},
     {"file": "audio/tostadito_3.mp3", "speaker": "Tostadito", "shot": "WIDE"}
 ]
 

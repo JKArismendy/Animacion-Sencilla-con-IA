@@ -2,14 +2,14 @@ import asyncio
 import edge_tts
 
 # Voces seleccionadas
-VOICE_LUCAS = "es-CO-GonzaloNeural"     # Tono cálido, barista
+VOICE_SAMARIO = "es-CO-GonzaloNeural"     # Tono cálido, barista
 VOICE_TOSTADITO = "es-CO-SalomeNeural"    # Voz expresiva (o es-MX-DaliaNeural)
 
 # Guion desglosado con nombres de archivo
 DIALOGOS = [
     {
-        "file": "lucas_1.mp3",
-        "voice": VOICE_LUCAS,
+        "file": "samario_1.mp3",
+        "voice": VOICE_SAMARIO,
         "pitch": "+0Hz",
         "rate": "+0%",
         "text": "¿Por qué la gente cree que hacer buen café es un examen de cálculo universitario?"
@@ -22,8 +22,8 @@ DIALOGOS = [
         "text": "¡Total! Me dicen 'usa un ratio 1:16 con extracción de dos minutos'... ¡y yo solo quería que me tomaran rico en el desayuno!"
     },
     {
-        "file": "lucas_2.mp3",
-        "voice": VOICE_LUCAS,
+        "file": "samario_2.mp3",
+        "voice": VOICE_SAMARIO,
         "pitch": "+0Hz",
         "rate": "+0%",
         "text": "El ratio no es física cuántica. Es exactamente igual a cocinar arroz o ponerle sal a una sopa."
@@ -36,15 +36,15 @@ DIALOGOS = [
         "text": "Básicamente, el ratio es cuántos amigos invito a la taza: si vienen pocos, la fiesta muere."
     },
     {
-        "file": "lucas_3.mp3",
-        "voice": VOICE_LUCAS,
+        "file": "samario_3.mp3",
+        "voice": VOICE_SAMARIO,
         "pitch": "+0Hz",
         "rate": "+0%",
         "text": "Regla de oro estándar: por cada cucharada sopera colmada de café, una taza normal de agua."
     },
     {
-        "file": "lucas_4.mp3",
-        "voice": VOICE_LUCAS,
+        "file": "samario_4.mp3",
+        "voice": VOICE_SAMARIO,
         "pitch": "+0Hz",
         "rate": "+0%",
         "text": "Tu paladar manda, no la báscula."
