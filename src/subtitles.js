@@ -11,7 +11,7 @@ const LINES = [
   '¡Y no me dejen enfriar en el mesón! Comenta cómo lo preparas tú en casa.'
 ];
 
-const TEXT_COLORS = { Lucas: '#FFFFFF', Samario: '#FFFFFF', Tostadito: '#FFE2B8' };
+const TEXT_COLOR = '#FFFFFF';   // siempre blanco, hable quien hable
 
 // Zona segura de Instagram: franja entre ~62% y ~82% de la altura del cuadro
 const CENTER_Y_FRACTION = 0.72;   // centro del subtítulo, medido desde arriba
@@ -84,16 +84,6 @@ export function createSubtitles(width, height) {
     return lines;
   }
 
-  function roundRect(x, y, w, h, r) {
-    ctx.beginPath();
-    ctx.moveTo(x + r, y);
-    ctx.arcTo(x + w, y, x + w, y + h, r);
-    ctx.arcTo(x + w, y + h, x, y + h, r);
-    ctx.arcTo(x, y + h, x, y, r);
-    ctx.arcTo(x, y, x + w, y, r);
-    ctx.closePath();
-  }
-
   function draw(text, color) {
     ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
     const fontSize = 64;
@@ -103,26 +93,19 @@ export function createSubtitles(width, height) {
 
     const lines = wrap(text, CANVAS_W - 120);
     const lineH = fontSize * 1.25;
-    const textW = Math.max(...lines.map(l => ctx.measureText(l).width));
-    const boxW = Math.min(CANVAS_W, textW + 80);
-    const boxH = lines.length * lineH + 36;
-    const boxX = (CANVAS_W - boxW) / 2;
-    const boxY = (CANVAS_H - boxH) / 2;
+    const blockH = lines.length * lineH;
+    const startY = (CANVAS_H - blockH) / 2;
 
-    ctx.fillStyle = 'rgba(10, 14, 22, 0.88)';
-    roundRect(boxX, boxY, boxW, boxH, 28);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(255, 255, 255, 0.10)';
-    ctx.lineWidth = 2;
-    ctx.stroke();
-
+    // Sin marco ni fondo: solo texto blanco con una sombra suave para que se lea
     ctx.fillStyle = color;
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-    ctx.shadowBlur = 6;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.75)';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetY = 3;
     lines.forEach((l, i) => {
-      ctx.fillText(l, CANVAS_W / 2, boxY + 18 + lineH * (i + 0.5));
+      ctx.fillText(l, CANVAS_W / 2, startY + lineH * (i + 0.5));
     });
     ctx.shadowBlur = 0;
+    ctx.shadowOffsetY = 0;
     texture.needsUpdate = true;
   }
 
@@ -155,7 +138,7 @@ export function createSubtitles(width, height) {
     const key = index + ':' + chunkIndex;
     if (key !== shownKey) {
       shownKey = key;
-      draw(chunks[chunkIndex], TEXT_COLORS[seg.speaker] || '#FFFFFF');
+      draw(chunks[chunkIndex], TEXT_COLOR);
     }
     mesh.visible = true;
   }
