@@ -36,6 +36,8 @@ function seededRandom(seed) {
   };
 }
 
+import { bevelBox } from './bevel-box.js';
+
 export function createSamario() {
   const group = new THREE.Group();
   group.position.set(-0.52, 0, -0.15);
@@ -93,14 +95,14 @@ export function createSamario() {
   const whiteMat = new THREE.MeshStandardMaterial({ color: 0xF7F7F9, roughness: 0.3, flatShading: true });
 
   // 1. TORSO / HOMBROS (BUSTO)
-  const torso = new THREE.Mesh(new THREE.BoxGeometry(0.60, 0.56, 0.28), poloRedMat);
+  const torso = new THREE.Mesh(bevelBox(0.60, 0.56, 0.28, 0.01), poloRedMat);
   torso.position.y = 1.15;
   torso.castShadow = true;
   torso.receiveShadow = true;
   group.add(torso);
 
   // Hombros inclinados para romper la silueta rectangular
-  const shoulderL = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.09, 0.28), poloRedMat);
+  const shoulderL = new THREE.Mesh(bevelBox(0.22, 0.09, 0.28, 0.006), poloRedMat);
   shoulderL.position.set(0.22, 1.43, 0);
   shoulderL.rotation.z = -0.35;
   shoulderL.castShadow = true;
@@ -109,7 +111,7 @@ export function createSamario() {
   shoulderR.rotation.z = 0.35;
   group.add(shoulderL, shoulderR);
 
-  const neck = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.16, 0.14), skinShadeMat);
+  const neck = new THREE.Mesh(bevelBox(0.15, 0.16, 0.14, 0.005), skinShadeMat);
   neck.position.y = 1.50;
   neck.castShadow = true;
   group.add(neck);
@@ -136,7 +138,7 @@ export function createSamario() {
     const armGroup = new THREE.Group();
     armGroup.position.set(xPos, 1.40, 0.02);
 
-    const sleeve = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.22, 0.16), poloRedMat);
+    const sleeve = new THREE.Mesh(bevelBox(0.14, 0.22, 0.16, 0.005), poloRedMat);
     sleeve.position.y = -0.10;
     sleeve.castShadow = true;
     armGroup.add(sleeve);
@@ -145,7 +147,7 @@ export function createSamario() {
     forearmGroup.position.set(0, -0.20, 0);
     forearmGroup.rotation.x = 0.45;
 
-    const forearm = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.26, 0.11), skinMat);
+    const forearm = new THREE.Mesh(bevelBox(0.10, 0.26, 0.11, 0.004), skinMat);
     forearm.position.y = -0.11;
     forearm.castShadow = true;
     forearmGroup.add(forearm);
@@ -173,7 +175,7 @@ export function createSamario() {
 
   const restUpper = new THREE.Group();
   restUpper.position.copy(REST_SHOULDER);
-  const restSleeve = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.22, 0.16), poloRedMat);
+  const restSleeve = new THREE.Mesh(bevelBox(0.14, 0.22, 0.16, 0.005), poloRedMat);
   restSleeve.position.y = -0.11;
   restSleeve.castShadow = true;
   const restUpperSkin = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.15, 0.11), skinMat);
@@ -317,7 +319,7 @@ export function createSamario() {
   headGroup.position.y = 1.76;
 
   // Cráneo en bloque: planos angulosos como en la referencia
-  const skull = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.44, 0.38), skinMat);
+  const skull = new THREE.Mesh(bevelBox(0.46, 0.44, 0.38, 0.011), skinMat);
   skull.position.y = 0.06;
   skull.castShadow = true;
   skull.receiveShadow = true;
@@ -395,7 +397,7 @@ export function createSamario() {
   headGroup.add(hair);
 
   // Nariz angulosa
-  const nose = new THREE.Mesh(new THREE.BoxGeometry(0.055, 0.08, 0.06), skinMat);
+  const nose = new THREE.Mesh(bevelBox(0.055, 0.08, 0.06, 0.003), skinMat);
   nose.position.set(0, 0.05, 0.215);
   nose.castShadow = true;
   headGroup.add(nose);
@@ -441,13 +443,13 @@ export function createSamario() {
     const rimGroup = new THREE.Group();
     rimGroup.position.set(xPos, 0, 0);
 
-    const topBar = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.03, 0.04), glassesFrameMat);
+    const topBar = new THREE.Mesh(bevelBox(0.17, 0.03, 0.04, 0.004), glassesFrameMat);
     topBar.position.y = 0.06;
-    const botBar = new THREE.Mesh(new THREE.BoxGeometry(0.17, 0.03, 0.04), glassesFrameMat);
+    const botBar = new THREE.Mesh(bevelBox(0.17, 0.03, 0.04, 0.004), glassesFrameMat);
     botBar.position.y = -0.06;
-    const leftBar = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.12, 0.04), glassesFrameMat);
+    const leftBar = new THREE.Mesh(bevelBox(0.03, 0.12, 0.04, 0.004), glassesFrameMat);
     leftBar.position.x = -0.07;
-    const rightBar = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.12, 0.04), glassesFrameMat);
+    const rightBar = new THREE.Mesh(bevelBox(0.03, 0.12, 0.04, 0.004), glassesFrameMat);
     rightBar.position.x = 0.07;
     const lens = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.09, 0.01), glassesLensMat);
 
@@ -457,11 +459,11 @@ export function createSamario() {
 
   const leftRim = createLensRim(0.11);
   const rightRim = createLensRim(-0.11);
-  const bridge = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.03, 0.04), glassesFrameMat);
+  const bridge = new THREE.Mesh(bevelBox(0.06, 0.03, 0.04, 0.004), glassesFrameMat);
   bridge.position.set(0, 0.035, 0);
-  const templeL = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.03, 0.22), glassesFrameMat);
+  const templeL = new THREE.Mesh(bevelBox(0.025, 0.03, 0.22, 0.003), glassesFrameMat);
   templeL.position.set(0.225, 0.04, -0.11);
-  const templeR = new THREE.Mesh(new THREE.BoxGeometry(0.025, 0.03, 0.22), glassesFrameMat);
+  const templeR = new THREE.Mesh(bevelBox(0.025, 0.03, 0.22, 0.003), glassesFrameMat);
   templeR.position.set(-0.225, 0.04, -0.11);
 
   glassesGroup.add(leftRim, rightRim, bridge, templeL, templeR);

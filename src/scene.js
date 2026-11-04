@@ -260,9 +260,16 @@ export function setupScene() {
   rimLightCyan.target = targetObj;
   scene.add(rimLightCyan);
 
-  // Kicker secundario azul tenue por el lado izquierdo para definir el hombro oscuro
-  const kickerLeft = new THREE.PointLight(0x1485e0, 1.0, 5.0);
+  // Luz de recorte azul por el lado izquierdo: mismo sitio, apuntando a la espalda
+  // de los personajes para dibujar el contorno de hombros y cabeza
+  const kickerLeft = new THREE.SpotLight(0x1485e0, 5.0, 5.0);
   kickerLeft.position.set(-2.2, 2.0, -1.0);
+  kickerLeft.angle = Math.PI / 4;
+  kickerLeft.penumbra = 0.6;
+  const kickerTarget = new THREE.Object3D();
+  kickerTarget.position.set(0.0, 1.3, -0.25);   // espalda de los personajes
+  scene.add(kickerTarget);
+  kickerLeft.target = kickerTarget;
   scene.add(kickerLeft);
 
   // 2. PARED DE LADRILLO (estilo pixel-art de cafetería)
@@ -321,7 +328,7 @@ export function setupScene() {
     put(g, cyl(0.007, 0.007, 1.2, 6, mat(0x111111)), 0, 0.7, 0);
     put(g, cyl(0.04, 0.17, 0.18, 8, mat(0x15161C, { metalness: 0.4, roughness: 0.4 })), 0, 0, 0);
     put(g, new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 6), new THREE.MeshBasicMaterial({ color: 0xFFE0A0 })), 0, -0.07, 0);
-    const light = new THREE.PointLight(0xd1c217, 1.5, 1.5, 2);
+    const light = new THREE.PointLight(0xe6af30, 1.5, 1.5, 0.12);
     light.position.set(0, -0.12, 0.1);
     g.add(light);
     scene.add(g);

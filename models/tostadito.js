@@ -1,3 +1,5 @@
+import { bevelBox } from './bevel-box.js';
+
 // Superficie del café: centro oscuro, anillo de crema claro y remolino sutil
 function createCoffeeTexture() {
   const size = 256;
@@ -116,16 +118,16 @@ export function createTostadito() {
   const handleGroup = new THREE.Group();
   handleGroup.position.set(0.18, 0.19, 0);
 
-  const hTop = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.04, 0.05), cupMat);
+  const hTop = new THREE.Mesh(bevelBox(0.11, 0.04, 0.05, 0.004), cupMat);
   hTop.position.set(0.05, 0.08, 0);
-  const hSide = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.12, 0.05), cupMat);
+  const hSide = new THREE.Mesh(bevelBox(0.045, 0.12, 0.05, 0.004), cupMat);
   hSide.position.set(0.125, 0, 0);
-  const hBottom = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.04, 0.05), cupMat);
+  const hBottom = new THREE.Mesh(bevelBox(0.11, 0.04, 0.05, 0.004), cupMat);
   hBottom.position.set(0.05, -0.08, 0);
-  const hCornerTop = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.04, 0.05), cupMat);
+  const hCornerTop = new THREE.Mesh(bevelBox(0.05, 0.04, 0.05, 0.004), cupMat);
   hCornerTop.position.set(0.115, 0.065, 0);
   hCornerTop.rotation.z = -Math.PI / 4;
-  const hCornerBottom = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.04, 0.05), cupMat);
+  const hCornerBottom = new THREE.Mesh(bevelBox(0.05, 0.04, 0.05, 0.004), cupMat);
   hCornerBottom.position.set(0.115, -0.065, 0);
   hCornerBottom.rotation.z = Math.PI / 4;
   [hTop, hSide, hBottom, hCornerTop, hCornerBottom].forEach(m => {
@@ -145,27 +147,27 @@ export function createTostadito() {
   const pupils = [];
   const lids = [];
   const brows = [];
-  const EYE_Y = 0.048;
-  const BROW_BASE_Y = EYE_Y + 0.058;   // más separadas de los ojos: expresión abierta
-  const LID_H = 0.056;
+  const EYE_Y = 0.054;
+  const BROW_BASE_Y = EYE_Y + 0.084;   // más separadas de los ojos: expresión abierta
+  const LID_H = 0.100;
 
   function createEye(x) {
     const eye = new THREE.Group();
     eye.position.set(x, EYE_Y, 0);
 
-    const w = new THREE.Mesh(new THREE.BoxGeometry(0.062, 0.052, 0.016), whiteMat);
+    const w = new THREE.Mesh(new THREE.BoxGeometry(0.074, 0.098, 0.016), whiteMat);
     w.position.z = 0.004;
-    const p = new THREE.Mesh(new THREE.BoxGeometry(0.030, 0.030, 0.012), darkMat);
+    const p = new THREE.Mesh(new THREE.BoxGeometry(0.040, 0.052, 0.012), darkMat);
     p.position.set(0, 0, 0.0095);
     // Párpado (del color de la taza) que baja al parpadear
-    const lid = new THREE.Mesh(new THREE.BoxGeometry(0.066, LID_H, 0.012), cupMat);
+    const lid = new THREE.Mesh(new THREE.BoxGeometry(0.098, LID_H, 0.012), cupMat);
     lid.position.set(0, LID_H / 2, 0.0125);
     lid.scale.y = 0.001;
     lid.visible = false;
     eye.add(w, p, lid);
     faceGroup.add(eye);
 
-    const brow = new THREE.Mesh(new THREE.BoxGeometry(0.060, 0.014, 0.02), browMat);
+    const brow = new THREE.Mesh(new THREE.BoxGeometry(0.084, 0.014, 0.02), browMat);
     brow.position.set(x, BROW_BASE_Y, 0.006);
     // Extremo interior más alto que el exterior: ceja alegre / curiosa (no enojada)
     brow.rotation.z = x > 0 ? -0.12 : 0.12;
@@ -175,8 +177,8 @@ export function createTostadito() {
     lids.push(lid);
     brows.push(brow);
   }
-  createEye(-0.055);
-  createEye(0.055);
+  createEye(-0.066);
+  createEye(0.066);
 
   // Boca: franja oscura que cambia de forma; sonrisa leve en reposo
   const MOUTH_TOP = 0.008;
@@ -225,7 +227,7 @@ export function createTostadito() {
 
   // Juego de pupilas: movimientos pequeños sobre la mirada base
   const PUPIL_MAX_X = 0.016;
-  const PUPIL_MAX_Y = 0.011;
+  const PUPIL_MAX_Y = 0.010;
   let playX = 0, playY = 0, playTX = 0, playTY = 0, nextPlayAt = 0;
 
   function pickPupilPlay() {

@@ -52,11 +52,12 @@ Guía de las luces de la escena 3D de **CoffeeTales** (Three.js r128): qué luz 
 - **Valores:** color `0x00E5FF`, intensidad `2.2`, `angle = Math.PI / 2.5`, `penumbra = 0.5`.
 - **Efecto:** dibuja la línea cian en el borde derecho de Samario, del pelo y de la taza. Al venir de atrás, no ilumina las caras frontales.
 
-### 4. `kickerLeft` — relleno azul de hombro
-- **Archivo:** `src/scene.js` (≈ líneas 264–266)
+### 4. `kickerLeft` — luz de recorte azul (SpotLight)
+- **Archivo:** `src/scene.js` (≈ líneas 263–272)
 - **Posición:** `(-2.2, 2.0, -1.0)` — a la izquierda y detrás.
-- **Valores:** color `0x1D4ED8`, intensidad `1.0`, `distance = 5.0`.
-- **Efecto:** borde azul tenue que ayuda a definir el hombro izquierdo oscuro.
+- **Objetivo:** `kickerTarget` en `(0, 1.3, -0.25)` — la espalda de los personajes.
+- **Valores:** color `0x1485E0`, intensidad `7.0`, `distance = 5.0`, `angle = Math.PI / 4`, `penumbra = 0.6`.
+- **Efecto:** recorta con un borde azul el hombro y la cabeza desde atrás.
 
 ### 5. Lámparas colgantes — `light` dentro de `createPendant(x)`
 - **Archivo:** `src/scene.js` (≈ líneas 318–330). Se crean dos: `createPendant(-0.85)` y `createPendant(0.85)`.
