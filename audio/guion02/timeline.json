@@ -1,49 +1,56 @@
 {
   "titulo": "Episodio 1 - El ratio del café",
-  "duracion": 45.34,
+  "duracion": 37.579,
   "planos": {},
   "lineas": [
     {
       "speaker": "Samario",
       "texto": "¿Por qué la gente cree que hacer buen café es un examen de cálculo universitario?",
+      "mirada": "auto",
       "start": 0.0,
-      "end": 4.96
+      "end": 3.919
     },
     {
       "speaker": "Tostadito",
       "texto": "¡Total! Me dicen 'usa un ratio 1 16 con extracción de dos minutos'... ¡y yo solo quería que me tomaran rico en el desayuno!",
-      "start": 4.96,
-      "end": 13.8
+      "mirada": "auto",
+      "start": 3.919,
+      "end": 12.035
     },
     {
       "speaker": "Samario",
       "texto": "El ratio no es física cuántica. Es exactamente igual a cocinar arroz o ponerle sal a una sopa.",
-      "start": 13.8,
-      "end": 20.32
+      "mirada": "auto",
+      "start": 12.035,
+      "end": 17.675
     },
     {
       "speaker": "Tostadito",
       "texto": "Básicamente, el ratio es cuántos amigos invito a la taza: si vienen pocos, la fiesta muere.",
-      "start": 20.32,
-      "end": 27.52
+      "mirada": "auto",
+      "start": 17.675,
+      "end": 24.463
     },
     {
       "speaker": "Samario",
       "texto": "Regla de oro estándar: por cada cucharada sopera colmada de café, una taza normal de agua.",
-      "start": 27.52,
-      "end": 33.56
+      "mirada": "auto",
+      "start": 24.463,
+      "end": 29.532
     },
     {
       "speaker": "Samario",
       "texto": "Tu paladar manda, no la báscula.",
-      "start": 33.56,
-      "end": 38.08
+      "mirada": "auto",
+      "start": 29.532,
+      "end": 31.413
     },
     {
       "speaker": "Tostadito",
       "texto": "¡Y no me dejen enfriar en el mesón! Comenta cómo lo preparas tú en casa.",
-      "start": 38.08,
-      "end": 43.84
+      "mirada": "auto",
+      "start": 31.413,
+      "end": 36.079
     }
   ],
   "camara": [
@@ -53,38 +60,38 @@
       "plano": "WIDE"
     },
     {
-      "t": 4.96,
+      "t": 3.919,
       "transicion": "normal",
       "plano": "CUP"
     },
     {
-      "t": 13.8,
+      "t": 12.035,
       "transicion": "normal",
       "plano": "SAMARIO"
     },
     {
-      "t": 14.452,
+      "t": 12.599,
       "transicion": "normal",
       "zoom": 1.5,
       "dura": 4.0
     },
     {
-      "t": 20.32,
+      "t": 17.675,
       "transicion": "normal",
       "plano": "CUP"
     },
     {
-      "t": 27.52,
+      "t": 24.463,
       "transicion": "normal",
       "plano": "SAMARIO"
     },
     {
-      "t": 33.56,
+      "t": 29.532,
       "transicion": "normal",
       "plano": "WIDE"
     },
     {
-      "t": 38.08,
+      "t": 31.413,
       "transicion": "normal",
       "plano": "WIDE",
       "zoom": 1.15,
@@ -96,8 +103,8 @@
     {
       "quien": "Tostadito",
       "gesto": "saltar",
-      "start": 30.54,
-      "end": 31.34,
+      "start": 26.997,
+      "end": 27.797,
       "fuerza": 1.0
     }
   ]

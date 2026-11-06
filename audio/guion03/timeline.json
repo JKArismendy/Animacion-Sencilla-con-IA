@@ -1,6 +1,6 @@
 {
   "titulo": "Presentación - Samario y Tostadito",
-  "duracion": 17.404,
+  "duracion": 17.409,
   "planos": {},
   "lineas": [
     {
@@ -8,42 +8,42 @@
       "texto": "¡Hola! Somos Tostadito y Samario.",
       "mirada": "camara",
       "start": 0.0,
-      "end": 3.64
+      "end": 3.641
     },
     {
       "speaker": "Samario",
       "texto": "yo soy amante del café,  con ganas de que tú también lo seas.",
       "mirada": "camara",
-      "start": 2.14,
-      "end": 5.097
+      "start": 2.141,
+      "end": 5.098
     },
     {
       "speaker": "Tostadito",
       "texto": "Estaremos por aquí contándote nuestras historias y uno que otro truquito.",
       "mirada": "camara",
-      "start": 5.347,
-      "end": 10.254
+      "start": 5.348,
+      "end": 10.256
     },
     {
       "speaker": "Samario",
       "texto": "Esperamos verte por aquí a menudo.",
       "mirada": "companero",
-      "start": 10.504,
-      "end": 12.365
+      "start": 10.506,
+      "end": 12.368
     },
     {
       "speaker": "Samario",
       "texto": "que tengas un buen día!",
       "mirada": "camara",
-      "start": 12.415,
-      "end": 13.672
+      "start": 12.418,
+      "end": 13.675
     },
     {
       "speaker": "Tostadito",
       "texto": "¡Nos vemos por aquí muy pronto!",
       "mirada": "camara",
-      "start": 13.672,
-      "end": 15.904
+      "start": 13.675,
+      "end": 15.909
     }
   ],
   "camara": [
@@ -53,27 +53,27 @@
       "plano": "WIDE"
     },
     {
-      "t": 2.14,
+      "t": 2.141,
       "transicion": "normal",
       "plano": "SAMARIO"
     },
     {
-      "t": 5.347,
+      "t": 5.348,
       "transicion": "normal",
       "plano": "CUP"
     },
     {
-      "t": 10.504,
+      "t": 10.506,
       "transicion": "normal",
       "plano": "SAMARIO"
     },
     {
-      "t": 12.415,
+      "t": 12.418,
       "transicion": "normal",
       "plano": "WIDE"
     },
     {
-      "t": 13.672,
+      "t": 13.675,
       "transicion": "normal",
       "plano": "WIDE"
     }

@@ -1,49 +1,56 @@
 {
   "titulo": "Episodio 2 - El ratio del arroz y del café",
-  "duracion": 33.928,
+  "duracion": 33.929,
   "planos": {},
   "lineas": [
     {
       "speaker": "Samario",
       "texto": "¿De nuevo con ese cuento del ratio? ¡Jaja!",
+      "mirada": "auto",
       "start": 0.0,
       "end": 2.323
     },
     {
       "speaker": "Tostadito",
       "texto": "Yo creo que nunca han hecho arroz en su vida, porque ahí mismito están usando ratio.",
+      "mirada": "auto",
       "start": 2.323,
       "end": 8.052
     },
     {
       "speaker": "Samario",
       "texto": "Claro, dos de agua por una de arroz, ¡eso es ratio! Bueno, con tu café es igualito.",
+      "mirada": "auto",
       "start": 8.052,
-      "end": 13.032
+      "end": 13.033
     },
     {
       "speaker": "Tostadito",
       "texto": "¡Exacto! El ratio uno dieciséis es que por un gramo de café vas a usar dieciséis mililitros de agua.",
-      "start": 13.032,
-      "end": 21.668
+      "mirada": "auto",
+      "start": 13.033,
+      "end": 21.669
     },
     {
       "speaker": "Tostadito",
       "texto": "tú siempre decides. Aquí lo que importa es que a ti te guste: puedes usar gramera, tazas, cucharadas... ¡como quieras!",
-      "start": 21.668,
+      "mirada": "auto",
+      "start": 21.669,
       "end": 29.455
     },
     {
       "speaker": "Samario",
       "texto": "¿Y tú cómo encontraste tu receta perfecta?",
+      "mirada": "auto",
       "start": 29.455,
       "end": 31.802
     },
     {
       "speaker": "Tostadito",
       "texto": "¡Adiós!",
+      "mirada": "auto",
       "start": 31.802,
-      "end": 32.428
+      "end": 32.429
     }
   ],
   "camara": [
@@ -69,12 +76,12 @@
       "dura": 2.5
     },
     {
-      "t": 13.032,
+      "t": 13.033,
       "transicion": "normal",
       "plano": "CUP"
     },
     {
-      "t": 21.668,
+      "t": 21.669,
       "transicion": "normal",
       "plano": "CUP"
     },
@@ -102,8 +109,8 @@
     {
       "quien": "Tostadito",
       "gesto": "saltar",
-      "start": 23.225,
-      "end": 23.825,
+      "start": 23.226,
+      "end": 23.826,
       "fuerza": 1.0
     }
   ]

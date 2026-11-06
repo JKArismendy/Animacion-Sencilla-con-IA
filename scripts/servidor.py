@@ -7,7 +7,7 @@
 Además de los archivos del proyecto responde a /api/lista con los guiones (guiones/*.json)
 y las escenas (escenas/*.js) disponibles, para los selectores de la página.
 
-Construcción automática: cuando guardas un guion de guiones/, el servidor espera unos
+Construcción automática: cuando cambia el contenido de un guion de guiones/ (no su fecha), el servidor espera unos
 segundos y ejecuta construir.py con él (solo se regenera lo que cambió). El estado se ve en
 la consola y en la página (/api/estado); al terminar, la página recarga el guion sola.
 
@@ -15,6 +15,7 @@ Edición desde la página: el botón "Editar guion" abre un panel con los campos
 al guardar, la página envía los cambios a POST /api/guion/<nombre> y el servidor los escribe en
 guiones/<nombre>.json (lo que dispara la construcción automática).
 """
+import hashlib
 import json
 import os
 import subprocess
@@ -57,13 +58,26 @@ def info_guiones():
     return salida
 
 
-def mtimes():
+def huellas():
+    """Huella del CONTENIDO de cada guion (no de su fecha de modificación).
+
+    Se calcula sobre el JSON ya interpretado, así que cambiar de rama, hacer merge, guardar
+    sin cambios o solo reformatear el archivo no dispara una construcción.
+    """
     salida = {}
     for nombre in listar_guiones():
+        ruta = os.path.join(DIR_GUIONES, nombre + ".json")
         try:
-            salida[nombre] = os.path.getmtime(os.path.join(DIR_GUIONES, nombre + ".json"))
+            with open(ruta, "rb") as f:
+                crudo = f.read()
         except OSError:
-            pass
+            continue
+        try:
+            canonico = json.dumps(json.loads(crudo.decode("utf-8")), sort_keys=True, ensure_ascii=False)
+            crudo = canonico.encode("utf-8")
+        except (ValueError, UnicodeDecodeError):
+            pass   # JSON a medio escribir o inválido: se usa el contenido tal cual
+        salida[nombre] = hashlib.sha1(crudo).hexdigest()
     return salida
 
 
@@ -90,11 +104,11 @@ def construir(nombre):
 
 def vigilar():
     """Hilo: detecta guiones guardados y los construye de uno en uno."""
-    vistos = mtimes()
+    vistos = huellas()
     cambio = {}   # nombre -> momento del último cambio detectado
     while True:
         time.sleep(1)
-        actuales = mtimes()
+        actuales = huellas()
         for nombre, m in actuales.items():
             if vistos.get(nombre) != m:
                 vistos[nombre] = m
