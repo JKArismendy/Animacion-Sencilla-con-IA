@@ -1,11 +1,26 @@
 *.exe
 *.zip
 0ComandosShell/
+
+# Secretos (clave de ElevenLabs)
 .env
-<<<<<<< HEAD
-.venv
-=======
-.env/
+
+# Entorno virtual de Python (Chatterbox)
 .venv/
->>>>>>> guionCentralizado
+
+# Cache de Python
+__pycache__/
+*.pyc
+
+# Videos generados (nunca se suben)
 renders/
+*.mp4
+*.webm
+*.mov
+*.mkv
+*.avi
+
+# Imagenes
+*.jpg
+*.jpeg
+*.png
