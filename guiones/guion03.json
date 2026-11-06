@@ -1,0 +1,76 @@
+{
+  "titulo": "Presentación - Samario y Tostadito",
+  "motor": "chatterbox",
+  "idioma": "es",
+  "modelo": "eleven_multilingual_v2",
+  "personajes": {
+    "Samario": {
+      "referencia": "audio/referencia/samario.wav",
+      "exaggeration": 0.5,
+      "cfg_weight": 0.5,
+      "voz_id": "YExhVa4bZONzeingloMX",
+      "stability": 0.55,
+      "similarity_boost": 0.8,
+      "style": 0.15
+    },
+    "Tostadito": {
+      "referencia": "audio/referencia/tostadito.wav",
+      "exaggeration": 0.7,
+      "cfg_weight": 0.4,
+      "voz_id": "ajOR9IDAaubDK5qtLUqQ",
+      "stability": 0.35,
+      "similarity_boost": 0.8,
+      "style": 0.45
+    }
+  },
+  "lineas": [
+    {
+      "personaje": "Samario",
+      "texto": "¡Hola! Somos Tostadito y Samario.",
+      "pausa": 0.0,
+      "solapar": 0.0,
+      "mirada": "camara",
+      "camara": "WIDE"
+    },
+    {
+      "personaje": "Samario",
+      "texto": "yo soy amante del café,  con ganas de que tú también lo seas.",
+      "pausa": 0.0,
+      "solapar": 1.5,
+      "mirada": "camara",
+      "camara": "SAMARIO"
+    },
+    {
+      "personaje": "Tostadito",
+      "texto": "Estaremos por aquí contándote nuestras historias y uno que otro truquito.",
+      "pausa": 0.25,
+      "solapar": 0.0,
+      "mirada": "camara",
+      "camara": "CUP"
+    },
+    {
+      "personaje": "Samario",
+      "texto": "Esperamos verte por aquí a menudo.",
+      "pausa": 0.25,
+      "solapar": 0.0,
+      "mirada": "companero",
+      "camara": "SAMARIO"
+    },
+    {
+      "personaje": "Samario",
+      "texto": "que tengas un buen día!",
+      "pausa": 0.05,
+      "solapar": 0.0,
+      "mirada": "camara",
+      "camara": "WIDE"
+    },
+    {
+      "personaje": "Tostadito",
+      "texto": "¡Nos vemos por aquí muy pronto!",
+      "pausa": 0.0,
+      "solapar": 0.0,
+      "mirada": "camara",
+      "camara": "WIDE"
+    }
+  ]
+}

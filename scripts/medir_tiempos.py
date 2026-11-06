@@ -1,47 +1,32 @@
-"""Mide cada pista de voz y genera src/timeline.json con tiempos reales:
+"""Mide cada pista de voz y genera audio/<guion>/timeline.json con tiempos reales:
 líneas (quién habla y qué dice), movimientos de cámara y gestos de los personajes."""
 import json
 import os
-import subprocess
 import sys
 
-from guion import DIR_AUDIO, RUTA_TIMELINE, archivo_audio, camara_de, cargar_guion
-
-
-def obtener_duracion(ruta):
-    cmd = [
-        "ffprobe", "-v", "error",
-        "-show_entries", "format=duration",
-        "-of", "default=noprint_wrappers=1:nokey=1",
-        ruta,
-    ]
-    try:
-        return float(subprocess.check_output(cmd).decode().strip())
-    except Exception:
-        # Fallback con ffmpeg
-        proc = subprocess.Popen(["ffmpeg", "-i", ruta], stderr=subprocess.PIPE)
-        _, stderr = proc.communicate()
-        lineas = [l for l in stderr.decode("latin1").split("\n") if "Duration" in l]
-        if lineas:
-            h, m, s = lineas[0].split("Duration:")[1].split(",")[0].strip().split(":")
-            return float(h) * 3600 + float(m) * 60 + float(s)
-        sys.exit(f"No se pudo medir la duración de {ruta}")
+from guion import (COLA_FINAL, archivo_audio, calcular_inicios, camara_de, cargar_guion,
+                   elegir_guion, obtener_duracion, rutas)
 
 
 def main():
-    guion = cargar_guion()
+    nombre = elegir_guion(sys.argv)
+    _, DIR_AUDIO, RUTA_TIMELINE = rutas(nombre)
+    guion = cargar_guion(nombre)
     lineas_out, camara, acciones = [], [], []
-    t = 0.0
-
-    for i, linea in enumerate(guion["lineas"]):
-        ruta = os.path.join(DIR_AUDIO, archivo_audio(i, linea))
+    rutas_audio = [os.path.join(DIR_AUDIO, archivo_audio(i, l)) for i, l in enumerate(guion["lineas"])]
+    for ruta in rutas_audio:
         if not os.path.exists(ruta):
             sys.exit(f"Falta {ruta}. Ejecuta primero generar_voces.py")
-        dur = obtener_duracion(ruta)
+    duraciones = [obtener_duracion(r) for r in rutas_audio]
+    inicios = calcular_inicios(guion["lineas"], duraciones)
+    t_fin = 0.0
+
+    for linea, dur, t in zip(guion["lineas"], duraciones, inicios):
 
         lineas_out.append({
             "speaker": linea["personaje"],
             "texto": linea["texto"],
+            "mirada": linea.get("mirada", "auto"),
             "start": round(t, 3),
             "end": round(t + dur, 3),
         })
@@ -57,7 +42,7 @@ def main():
                 "end": round(inicio + float(a.get("dura", 1.0)), 3),
                 "fuerza": float(a.get("fuerza", 1.0)),
             })
-        t += dur
+        t_fin = max(t_fin, t + dur)
 
     camara.sort(key=lambda c: c["t"])
     if not camara or camara[0]["t"] > 0:
@@ -67,14 +52,14 @@ def main():
     with open(RUTA_TIMELINE, "w", encoding="utf-8") as f:
         json.dump({
             "titulo": guion.get("titulo", ""),
-            "duracion": round(t, 3),
+            "duracion": round(t_fin + COLA_FINAL, 3),
             "planos": guion.get("planos", {}),
             "lineas": lineas_out,
             "camara": camara,
             "acciones": acciones,
         }, f, indent=2, ensure_ascii=False)
 
-    print(f"'src/timeline.json' generado: {len(lineas_out)} líneas, {round(t, 1)} s.")
+    print(f"'audio/{nombre}/timeline.json' generado: {len(lineas_out)} líneas, {round(t_fin, 1)} s.")
 
 
 if __name__ == "__main__":

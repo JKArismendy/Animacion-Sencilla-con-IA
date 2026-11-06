@@ -1,0 +1,82 @@
+{
+  "titulo": "Presentación - Samario y Tostadito",
+  "duracion": 17.404,
+  "planos": {},
+  "lineas": [
+    {
+      "speaker": "Samario",
+      "texto": "¡Hola! Somos Tostadito y Samario.",
+      "mirada": "camara",
+      "start": 0.0,
+      "end": 3.64
+    },
+    {
+      "speaker": "Samario",
+      "texto": "yo soy amante del café,  con ganas de que tú también lo seas.",
+      "mirada": "camara",
+      "start": 2.14,
+      "end": 5.097
+    },
+    {
+      "speaker": "Tostadito",
+      "texto": "Estaremos por aquí contándote nuestras historias y uno que otro truquito.",
+      "mirada": "camara",
+      "start": 5.347,
+      "end": 10.254
+    },
+    {
+      "speaker": "Samario",
+      "texto": "Esperamos verte por aquí a menudo.",
+      "mirada": "companero",
+      "start": 10.504,
+      "end": 12.365
+    },
+    {
+      "speaker": "Samario",
+      "texto": "que tengas un buen día!",
+      "mirada": "camara",
+      "start": 12.415,
+      "end": 13.672
+    },
+    {
+      "speaker": "Tostadito",
+      "texto": "¡Nos vemos por aquí muy pronto!",
+      "mirada": "camara",
+      "start": 13.672,
+      "end": 15.904
+    }
+  ],
+  "camara": [
+    {
+      "t": 0.0,
+      "transicion": "normal",
+      "plano": "WIDE"
+    },
+    {
+      "t": 2.14,
+      "transicion": "normal",
+      "plano": "SAMARIO"
+    },
+    {
+      "t": 5.347,
+      "transicion": "normal",
+      "plano": "CUP"
+    },
+    {
+      "t": 10.504,
+      "transicion": "normal",
+      "plano": "SAMARIO"
+    },
+    {
+      "t": 12.415,
+      "transicion": "normal",
+      "plano": "WIDE"
+    },
+    {
+      "t": 13.672,
+      "transicion": "normal",
+      "plano": "WIDE"
+    }
+  ],
+  "acciones": []
+}

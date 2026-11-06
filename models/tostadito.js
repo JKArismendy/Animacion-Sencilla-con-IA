@@ -205,8 +205,12 @@ export function createTostadito() {
     partner: { px: -0.016, py: 0,      yawF: 0.0, yawAdd: -0.04, pitch: 0,     lid: 0,    minT: 2.5, maxT: 4.5 },
     camera:  { px: 0,      py: 0,      yawF: 0.9, yawAdd: 0,     pitch: 0,     lid: 0,    minT: 0.9, maxT: 1.8 },
     down:    { px: -0.005, py: -0.010, yawF: 0.4, yawAdd: 0,     pitch: 0.06,  lid: 0.35, minT: 0.7, maxT: 1.3 },
-    aside:   { px: 0.014,  py: 0.006,  yawF: 0.5, yawAdd: 0.04,  pitch: -0.03, lid: 0,    minT: 0.7, maxT: 1.2 }
+    aside:   { px: 0.014,  py: 0.006,  yawF: 0.5, yawAdd: 0.04,  pitch: -0.03, lid: 0,    minT: 0.7, maxT: 1.2 },
+    up:      { px: -0.006, py: 0.010,  yawF: 0.5, yawAdd: -0.02, pitch: -0.05, lid: 0,    minT: 0.7, maxT: 1.2 }
   };
+  // Mirada pedida por el guion: 'camera', 'partner', 'think' (ojos vagando sin ver nada) o null (automática)
+  let forcedGaze = null;
+  const THINK_GAZES = ['aside', 'down', 'up', 'aside'];
 
   let speakLevel = 0;
   let mouthOpen = 0;
@@ -331,7 +335,7 @@ export function createTostadito() {
 
     // Final del video (últimos 3 s, la invitación a comentar): mira a la cámara
     const audioEl = typeof document !== 'undefined' ? document.getElementById('main-audio') : null;
-    const finale = !!audioEl && isFinite(audioEl.duration) && audioEl.duration > 0 &&
+    const finale = !forcedGaze && !!audioEl && isFinite(audioEl.duration) && audioEl.duration > 0 &&
       !audioEl.paused && (audioEl.duration - audioEl.currentTime) <= 3.0;
     if (finale) {
       gazeName = 'camera';
@@ -339,7 +343,15 @@ export function createTostadito() {
     }
 
     // Mirada: pasa por Samario, cámara, abajo y de lado
-    if (t >= gazeUntil) {
+    if (forcedGaze === 'camera' || forcedGaze === 'partner') {
+      gazeName = forcedGaze;
+      gazeUntil = t + 0.3;
+    } else if (forcedGaze === 'think') {
+      if (t >= gazeUntil || !THINK_GAZES.includes(gazeName)) {
+        gazeName = THINK_GAZES[Math.floor(Math.random() * THINK_GAZES.length)];
+        gazeUntil = t + 0.9 + Math.random() * 1.3;
+      }
+    } else if (t >= gazeUntil) {
       gazeName = pickGaze();
       const st = GAZE_STATES[gazeName];
       gazeUntil = t + st.minT + Math.random() * (st.maxT - st.minT);
@@ -400,7 +412,8 @@ export function createTostadito() {
       mouthTarget = 0;
       wideTarget = 1;
     }
-    const mk = 1 - Math.exp(-dt * 30);
+    // Abre con suavidad, pero cierra casi de golpe al terminar de hablar (si no, se ve mover la boca en el turno del otro)
+    const mk = 1 - Math.exp(-dt * (speakLevel > 0 ? 30 : 120));
     mouthOpen += (mouthTarget - mouthOpen) * mk;
     mouthWide += (wideTarget - mouthWide) * mk;
     applyMouth();
@@ -419,6 +432,7 @@ export function createTostadito() {
     setMouthScale: (scaleY) => {
       speakLevel = scaleY > 1.02 ? Math.min((scaleY - 1) / 2.5, 1) : 0;
     },
+    setGazeMode: (modo) => { forcedGaze = modo || null; },
     setBounce: (y) => { group.position.y = 1.03 + y; },
     setOrientation: (rotY, tiltZ = 0) => {
       // audio-sync gira la taza hacia Samario (rotY < 0) en su turno

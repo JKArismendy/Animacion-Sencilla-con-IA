@@ -27,11 +27,11 @@ function splitIntoChunks(text) {
   return chunks;
 }
 
-// Los textos vienen de guion.json (vía timeline.json); se parten una sola vez por línea
-const chunkCache = new Map();
-function getChunks(index, text) {
-  if (!chunkCache.has(index)) chunkCache.set(index, splitIntoChunks(text));
-  return chunkCache.get(index);
+// Los textos vienen del guion elegido (vía timeline.json); se parten una sola vez por texto
+const chunkCache = new Map();   // clave: el texto (así no se mezclan guiones distintos)
+function getChunks(text) {
+  if (!chunkCache.has(text)) chunkCache.set(text, splitIntoChunks(text));
+  return chunkCache.get(text);
 }
 
 // Capa de subtítulos dibujada DENTRO del canvas WebGL: se graba junto al video
@@ -110,14 +110,14 @@ export function createSubtitles(width, height) {
       return;
     }
     const timeline = getTimeline();
-    const index = timeline.findIndex(s => time >= s.start && time < s.end);
+    const index = timeline.findLastIndex(s => time >= s.start && time < s.end);
     if (index < 0 || !timeline[index].texto) {
       mesh.visible = false;
       return;
     }
 
     const seg = timeline[index];
-    const chunks = getChunks(index, seg.texto);
+    const chunks = getChunks(seg.texto);
     const total = chunks.reduce((n, c) => n + c.length, 0);
     const frac = Math.min(Math.max((time - seg.start) / (seg.end - seg.start), 0), 0.9999);
 
@@ -129,7 +129,7 @@ export function createSubtitles(width, height) {
       if (frac < acc) { chunkIndex = i; break; }
     }
 
-    const key = index + ':' + chunkIndex;
+    const key = seg.texto + "|" + chunkIndex;
     if (key !== shownKey) {
       shownKey = key;
       draw(chunks[chunkIndex], TEXT_COLOR);

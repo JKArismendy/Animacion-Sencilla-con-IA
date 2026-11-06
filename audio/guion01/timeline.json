@@ -1,0 +1,110 @@
+{
+  "titulo": "Episodio 2 - El ratio del arroz y del café",
+  "duracion": 33.928,
+  "planos": {},
+  "lineas": [
+    {
+      "speaker": "Samario",
+      "texto": "¿De nuevo con ese cuento del ratio? ¡Jaja!",
+      "start": 0.0,
+      "end": 2.323
+    },
+    {
+      "speaker": "Tostadito",
+      "texto": "Yo creo que nunca han hecho arroz en su vida, porque ahí mismito están usando ratio.",
+      "start": 2.323,
+      "end": 8.052
+    },
+    {
+      "speaker": "Samario",
+      "texto": "Claro, dos de agua por una de arroz, ¡eso es ratio! Bueno, con tu café es igualito.",
+      "start": 8.052,
+      "end": 13.032
+    },
+    {
+      "speaker": "Tostadito",
+      "texto": "¡Exacto! El ratio uno dieciséis es que por un gramo de café vas a usar dieciséis mililitros de agua.",
+      "start": 13.032,
+      "end": 21.668
+    },
+    {
+      "speaker": "Tostadito",
+      "texto": "tú siempre decides. Aquí lo que importa es que a ti te guste: puedes usar gramera, tazas, cucharadas... ¡como quieras!",
+      "start": 21.668,
+      "end": 29.455
+    },
+    {
+      "speaker": "Samario",
+      "texto": "¿Y tú cómo encontraste tu receta perfecta?",
+      "start": 29.455,
+      "end": 31.802
+    },
+    {
+      "speaker": "Tostadito",
+      "texto": "¡Adiós!",
+      "start": 31.802,
+      "end": 32.428
+    }
+  ],
+  "camara": [
+    {
+      "t": 0.0,
+      "transicion": "normal",
+      "plano": "WIDE"
+    },
+    {
+      "t": 2.323,
+      "transicion": "normal",
+      "plano": "CUP"
+    },
+    {
+      "t": 8.052,
+      "transicion": "normal",
+      "plano": "SAMARIO"
+    },
+    {
+      "t": 8.55,
+      "transicion": "normal",
+      "zoom": 1.4,
+      "dura": 2.5
+    },
+    {
+      "t": 13.032,
+      "transicion": "normal",
+      "plano": "CUP"
+    },
+    {
+      "t": 21.668,
+      "transicion": "normal",
+      "plano": "CUP"
+    },
+    {
+      "t": 22.447,
+      "transicion": "normal",
+      "zoom": 0.7,
+      "dura": 8.0
+    },
+    {
+      "t": 29.455,
+      "transicion": "normal",
+      "plano": "WIDE"
+    },
+    {
+      "t": 31.802,
+      "transicion": "normal",
+      "plano": "WIDE",
+      "zoom": 1.15,
+      "dura": 1.5,
+      "orbita": 15.0
+    }
+  ],
+  "acciones": [
+    {
+      "quien": "Tostadito",
+      "gesto": "saltar",
+      "start": 23.225,
+      "end": 23.825,
+      "fuerza": 1.0
+    }
+  ]
+}

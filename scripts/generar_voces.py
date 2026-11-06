@@ -1,12 +1,12 @@
-"""Genera las pistas de voz de guion.json (audio/01_samario.mp3, 02_tostadito.mp3...).
+"""Genera las pistas de voz de un guion de guiones/ (audio/<guion>/01_samario.mp3, 02_tostadito.mp3...).
 
 Motores (campo "motor" de guion.json):
   chatterbox  voces clonadas localmente desde samples WAV (audio/referencia/). Sin API ni créditos.
   elevenlabs  API de ElevenLabs (necesita ELEVENLABS_API_KEY en .env y voces permitidas por tu plan).
 
 Uso (desde cualquier carpeta):
-    python scripts/generar_voces.py            # genera solo las líneas nuevas o modificadas
-    python scripts/generar_voces.py --force    # regenera todo
+    python scripts/generar_voces.py ratio-del-cafe            # genera solo las líneas nuevas o modificadas
+    python scripts/generar_voces.py ratio-del-cafe --force    # regenera todo
 """
 import hashlib
 import json
@@ -16,10 +16,12 @@ import sys
 import urllib.error
 import urllib.request
 
-from guion import DIR_AUDIO, RAIZ, archivo_audio, cargar_guion, validar_motor
+from guion import RAIZ, archivo_audio, cargar_guion, elegir_guion, rutas, validar_motor
 
 OUTPUT_FORMAT = "mp3_44100_128"
-RUTA_MANIFIESTO = os.path.join(DIR_AUDIO, "manifest.json")
+# Se fijan en main() según el guion elegido: audio/<guion>/ y su manifest.json
+DIR_AUDIO = None
+RUTA_MANIFIESTO = None
 
 
 def cargar_env():
@@ -181,8 +183,12 @@ def generar_chatterbox(guion, trabajos, manifiesto):
 
 
 def main():
+    global DIR_AUDIO, RUTA_MANIFIESTO
     force = "--force" in sys.argv
-    guion = cargar_guion()
+    nombre_guion = elegir_guion(sys.argv)
+    DIR_AUDIO = rutas(nombre_guion)[1]
+    RUTA_MANIFIESTO = os.path.join(DIR_AUDIO, "manifest.json")
+    guion = cargar_guion(nombre_guion)
     motor = validar_motor(guion)
     os.makedirs(DIR_AUDIO, exist_ok=True)
 

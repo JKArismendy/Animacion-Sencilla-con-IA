@@ -23,17 +23,17 @@ Todo el proyecto corre en el navegador: no hay *build*, ni *bundler*, ni depende
 | **Three.js r128** (CDN) | Motor 3D | Escena, cámara perspectiva, luces, materiales `MeshStandardMaterial` con `flatShading` para el aspecto facetado, `InstancedMesh` para el pelo de Samario, `LatheGeometry` para la taza |
 | **EffectComposer** (Three.js examples) | Cadena de postprocesado | `RenderPass` → `UnrealBloomPass` (fuerza 0.35, radio 0.45, umbral 0.75) → `FilmPass` (grano 0.18) |
 | **ACES Filmic tone mapping** | Aspecto cinematográfico | `renderer.toneMapping` con exposición 1.05 y sombras suaves `PCFSoftShadowMap` |
-| **ES Modules** | Organización del código | `index.html` importa `scene.js`, `camera.js`, `audio-sync.js`, `subtitles.js` y los modelos con `import` |
+| **ES Modules** | Organización del código | `index.html` importa la escena elegida (`escenas/*.js`), `camera.js`, `audio-sync.js`, `subtitles.js` y los modelos con `import` |
 | **Web Audio API** | Lectura del volumen | `AnalyserNode` (FFT 256) sobre las frecuencias de la voz; ese valor mueve las bocas |
 | **Canvas 2D + `CanvasTexture`** | Texturas y subtítulos procedurales | Ladrillo, madera, pizarra, etiquetas, café y letrero se dibujan por código; los subtítulos se dibujan en una capa ortográfica sobre el render |
 | **`captureStream` + `MediaRecorder`** | Grabación del video | Captura el canvas a 30 fps junto con el audio, en VP9/Opus a 12 Mbps, y descarga un `.webm` |
 | **Chatterbox** (local) | Voces | Clona la voz de un sample WAV por personaje (`audio/referencia/`) y genera los diálogos en tu PC, sin API ni créditos |
-| **ElevenLabs** (API, opcional) | Voces | Motor alternativo (`"motor": "elevenlabs"` en `guion.json`); la clave va en `.env` y su plan debe permitir las voces elegidas |
+| **ElevenLabs** (API, opcional) | Voces | Motor alternativo (`"motor": "elevenlabs"` en el guion); la clave va en `.env` y su plan debe permitir las voces elegidas |
 | **FFmpeg / FFprobe** | Audio y video | Une los diálogos, mide duraciones y convierte el `.webm` final a `.mp4` |
 
 ### Cómo funciona la sincronización
 
-1. `medir_tiempos.py` mide cada pista con FFprobe y convierte `guion.json` en `src/timeline.json` (líneas, cambios de cámara y gestos con tiempos reales). `audio-sync.js` carga ese archivo al abrir la página.
+1. `medir_tiempos.py` mide cada pista con FFprobe y convierte el guion elegido en `audio/<guion>/timeline.json` (líneas, cambios de cámara y gestos con tiempos reales). `audio-sync.js` carga ese archivo al elegir el guion en la página.
 2. En cada fotograma, con `audio.currentTime` se busca el tramo activo, se lee el volumen y se llama a los métodos de cada personaje (`setJawOpen`, `setHeadAngles`, `setMouthScale`, `setOrientation`…).
 3. Cada modelo suma por su cuenta animaciones autónomas: parpadeo, cambios de mirada, cejas, respiración, movimiento del brazo y vapor.
 4. La cámara recibe el plano activo y se desplaza suavemente hacia él, con una pequeña vibración de cámara en mano.
@@ -46,10 +46,10 @@ Todo el proyecto corre en el navegador: no hay *build*, ni *bundler*, ni depende
 Los módulos ES no funcionan abriendo el archivo con doble clic; hay que servir la carpeta por HTTP:
 
 ```bash
-python -m http.server 8000
+python scripts/servidor.py
 ```
 
-Abre `http://localhost:8000`, pulsa **Iniciar / Grabar Video 3D** y espera a que termine el audio. El navegador descarga un `.webm`. Hace falta conexión a internet para cargar Three.js desde el CDN.
+Abre `http://localhost:8000`, elige el **guion** (de `guiones/`) y la **escena** (de `escenas/`) en los selectores, pulsa **Iniciar / Grabar Video 3D** y espera a que termine el audio. El navegador descarga `CoffeeTales_<guion>.webm`. Un guion marcado "(sin audios)" aún no se ha construido: ejecuta `python scripts/construir.py <guion>`. Hace falta conexión a internet para cargar Three.js desde el CDN.
 
 ### 2. Convertir a MP4
 
@@ -97,25 +97,25 @@ Abre `http://127.0.0.1:7860`. Ahí puedes grabar con el micrófono (o subir un a
 
 El botón **Guardar sample** guarda tu grabación directamente en `audio/referencia/` como el sample de Samario o de Tostadito.
 
-**4. Lleva tus valores al guion.** Cuando algo te guste, copia los valores a `guion.json`, en cada personaje: `referencia`, `exaggeration`, `cfg_weight` y, si quieres, `semilla`. Cada línea usa una semilla fija, así que regenerar da el mismo resultado.
+**4. Lleva tus valores al guion.** Cuando algo te guste, copia los valores a tu guion de `guiones/`, en cada personaje: `referencia`, `exaggeration`, `cfg_weight` y, si quieres, `semilla`. Cada línea usa una semilla fija, así que regenerar da el mismo resultado.
 
 #### Alternativa: ElevenLabs (opcional)
 
-Con `"motor": "elevenlabs"` en `guion.json` las voces se piden a la API de ElevenLabs. Cada personaje necesita su `voz_id` y la clave va en un archivo `.env` (`ELEVENLABS_API_KEY=tu_clave`). Ojo: **el plan gratuito no permite usar por API las voces de la librería**, solo las predeterminadas. Chatterbox es el motor por defecto y el recomendado.
+Con `"motor": "elevenlabs"` en el guion las voces se piden a la API de ElevenLabs. Cada personaje necesita su `voz_id` y la clave va en un archivo `.env` (`ELEVENLABS_API_KEY=tu_clave`). Ojo: **el plan gratuito no permite usar por API las voces de la librería**, solo las predeterminadas. Chatterbox es el motor por defecto y el recomendado.
 
 ### 4. Escribir el guion y generar las voces
 
-**Todo el guion vive en `guion.json`**: quién habla, qué dice, qué hace la cámara y qué gestos hacen los personajes.
+**Cada guion vive en su propio archivo de `guiones/`** (por ejemplo `guiones/ratio-del-cafe.json`): quién habla, qué dice, qué hace la cámara y qué gestos hacen los personajes.
 Requiere Python 3, FFmpeg y el entorno y los samples del paso anterior.
 
 ```bash
-python scripts/construir.py            # voces -> unir audios -> tiempos (solo regenera lo que cambió)
-python scripts/construir.py --force    # regenera todas las voces
+python scripts/construir.py ratio-del-cafe   # voces -> unir audios -> tiempos (solo regenera lo que cambió)
+python scripts/construir.py ratio-del-cafe --force   # regenera todas las voces
 ```
 
-`construir.py` ejecuta en orden `generar_voces.py`, `unir_audios.py` y `medir_tiempos.py`, que también puedes lanzar por separado desde cualquier carpeta. Las voces ya generadas no se vuelven a generar mientras no cambies su texto, su sample o sus parámetros (se anotan en `audio/manifest.json`). Una voz clonada en CPU tarda de unos 20 segundos a un minuto por línea.
+`construir.py` ejecuta en orden `generar_voces.py`, `unir_audios.py` y `medir_tiempos.py`, que también puedes lanzar por separado desde cualquier carpeta. Las voces ya generadas no se vuelven a generar mientras no cambies su texto, su sample o sus parámetros (se anotan en `audio/<guion>/manifest.json`). Una voz clonada en CPU tarda de unos 20 segundos a un minuto por línea.
 
-#### Formato de `guion.json`
+#### Formato de un guion (`guiones/<nombre>.json`)
 
 ```json
 {
@@ -163,21 +163,36 @@ python scripts/construir.py --force    # regenera todas las voces
   ```
 - **`acciones`**: gestos puntuales. `en` igual que arriba; `dura` en **segundos** (1 por defecto); `quien` por defecto es quien habla; `fuerza` opcional (1 = normal).
 - **Gestos de Samario**: `asentir`, `negar`, `mirar_taza`, `mirar_frente`, `gesticular`. **De Tostadito**: `saltar`, `ladear`, `temblar`, `mirar_samario`, `mirar_frente`.
+- **`pausa`** y **`solapar`** (opcionales, en cada línea): ritmo del diálogo en **segundos**. `pausa` = silencio antes de esa línea; `solapar` = cuánto entra encima de la anterior (interrumpir o hablar a la vez; los subtítulos y el movimiento siguen al que empezó último). No regeneran voces, solo reconstruyen el audio.
 - Los scripts validan el archivo y avisan con el número de línea si algo está mal escrito.
+
+#### Qué valores puedes tocar a mano
+
+| Dónde | Campo | Unidad | Efecto al cambiarlo |
+|---|---|---|---|
+| `personajes.<N>` | `exaggeration`, `cfg_weight`, `semilla`, `referencia` | número / ruta | Regenera las voces de ese personaje |
+| línea | `texto` | texto | Regenera solo esa voz |
+| línea | `pausa`, `solapar` | **segundos** | Solo reconstruye audio y tiempos |
+| `camara` | `en` | **fracción** de la línea (0 a 1) | Solo tiempos |
+| `camara` | `plano`, `transicion`, `zoom`, `orbita`, `inclinacion` | ver tabla de arriba | Solo tiempos |
+| `camara` / `acciones` | `dura` | **segundos** | Solo tiempos |
+| `acciones` | `en` (fracción), `quien`, `gesto`, `fuerza` | | Solo tiempos |
+| `planos` | `pos`, `mira` | coordenadas 3D | Solo tiempos |
+
+Nunca edites `audio/<guion>/timeline.json` ni `manifest.json`: se generan solos. Tras cualquier cambio, `python scripts/construir.py <guion>`.
 
 ## Estructura del proyecto
 
 ```
 .
 ├── index.html            Página, render, postprocesado y grabación
-├── guion.json            EL GUION: texto, voces, cámara y gestos
+├── guiones/              LOS GUIONES (uno por archivo): texto, voces, cámara y gestos
+├── escenas/              Escenografías (una por archivo .js; cafeteria.js)
 ├── .claude/skills/coffeetales/  Guía del proyecto para Claude Code (SKILL.md)
 ├── src/
-│   ├── scene.js          Escenografía y luces
 │   ├── camera.js         Planos de cámara
 │   ├── audio-sync.js     Sincronización audio-animación
 │   ├── subtitles.js      Subtítulos dentro del canvas
-│   ├── timeline.json     Línea de tiempo generada desde guion.json (no editar)
 │   └── scene-base.js     Versión original de la escena (respaldo)
 ├── models/
 │   ├── samario.js        Barista (personaje activo)
@@ -185,7 +200,7 @@ python scripts/construir.py --force    # regenera todas las voces
 │   ├── samario-base.js   Versión original de Samario (respaldo)
 │   └── tostadito-base.js Versión original de Tostadito (respaldo)
 ├── scripts/              Scripts de Python para voces, audio y tiempos
-├── audio/                Diálogos en MP3 y audio completo
+├── audio/                Una carpeta por guion con sus MP3, audio_completo.mp3 y timeline.json (generados)
 │   └── referencia/       Tus samples de voz (samario.wav, tostadito.wav)
 ├── .venv/                Entorno de Chatterbox (no se versiona)
 ├── .env                  Clave de ElevenLabs, solo si la usas (no se versiona)
@@ -207,11 +222,10 @@ python scripts/construir.py --force    # regenera todas las voces
 
 | Archivo | Descripción |
 |---|---|
-| `scene.js` | Crea la escena completa: luces, pared de ladrillo, pizarra, ventanas, lámparas, estantes, barra trasera y barra principal con textura y letrero. |
-| `camera.js` | Define los planos `WIDE`, `SAMARIO` y `CUP` (más los de `guion.json`), la transición entre ellos y la vibración de cámara en mano. |
+| `escenas/cafeteria.js` | (carpeta `escenas/`, fuera de `src/`) Crea la escena completa: luces, pared de ladrillo, pizarra, ventanas, lámparas, estantes, barra trasera y barra principal con textura y letrero. |
+| `camera.js` | Define los planos `WIDE`, `SAMARIO` y `CUP` (más los del guion), la transición entre ellos y la vibración de cámara en mano. |
 | `audio-sync.js` | Carga `timeline.json`, lee el volumen con Web Audio y anima a ambos personajes según quién hable y los gestos del guion. |
 | `subtitles.js` | Toma el texto de `timeline.json` y dibuja los subtítulos en una capa 2D sobre el render, partidos en fragmentos de hasta 6 palabras. |
-| `timeline.json` | Generado por `medir_tiempos.py` desde `guion.json`. Es lo que lee el navegador; no se edita a mano. |
 | `scene-base.js` | Copia de la escena original antes del rediseño del local. |
 
 ### `models/`
@@ -227,13 +241,14 @@ python scripts/construir.py --force    # regenera todas las voces
 | Archivo | Descripción |
 |---|---|
 | `construir.py` | Ejecuta los tres pasos siguientes en orden. |
-| `guion.py` | Lee y valida `guion.json` (módulo compartido). |
+| `servidor.py` | Servidor local: sirve la página y la lista de guiones y escenas para los selectores. |
+| `guion.py` | Lee y valida un guion de `guiones/` (módulo compartido). |
 | `generar_voces.py` | Genera una pista de voz por línea (Chatterbox o ElevenLabs); solo las nuevas o modificadas. |
 | `motor_chatterbox.py` | Lo ejecuta `generar_voces.py` dentro de `.venv`: clona la voz del sample y escribe los MP3. |
 | `probar_chatterbox.py` | Pantalla web local para grabar samples, probar frases y afinar con los deslizadores. |
 | `requirements-chatterbox.txt` | Dependencias del entorno de Chatterbox. |
 | `unir_audios.py` | Concatena las pistas con FFmpeg en `audio_completo.mp3`. |
-| `medir_tiempos.py` | Mide la duración de cada pista con FFprobe y escribe `src/timeline.json`. |
+| `medir_tiempos.py` | Mide la duración de cada pista con FFprobe y escribe `audio/<guion>/timeline.json`. |
 
 ### `audio/` y `docs/`
 

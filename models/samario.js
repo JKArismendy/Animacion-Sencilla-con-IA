@@ -683,14 +683,19 @@ export function createSamario() {
     partner: { px: 0.018,  py: 0,      yawF: 0.0, yawAdd: 0.05,  pitch: 0,     lid: 0,    minT: 2.0, maxT: 3.8 },
     camera:  { px: 0,      py: 0,      yawF: 0.9, yawAdd: 0,     pitch: 0,     lid: 0,    minT: 1.6, maxT: 3.2 },
     down:    { px: 0.006,  py: -0.010, yawF: 0.4, yawAdd: 0,     pitch: 0.08,  lid: 0.35, minT: 0.8, maxT: 1.5 },
-    aside:   { px: -0.015, py: 0.006,  yawF: 0.5, yawAdd: -0.04, pitch: -0.03, lid: 0,    minT: 0.8, maxT: 1.4 }
+    aside:   { px: -0.015, py: 0.006,  yawF: 0.5, yawAdd: -0.04, pitch: -0.03, lid: 0,    minT: 0.8, maxT: 1.4 },
+    up:      { px: 0.008,  py: 0.010,  yawF: 0.5, yawAdd: 0.02,  pitch: -0.05, lid: 0,    minT: 0.8, maxT: 1.4 }
   };
   const GAZE_NEXT = {
     partner: ['camera', 'down', 'camera', 'aside'],
     camera:  ['partner', 'partner', 'down', 'aside'],
     down:    ['partner', 'camera', 'camera'],
-    aside:   ['partner', 'camera']
+    aside:   ['partner', 'camera'],
+    up:      ['partner', 'camera']
   };
+  // Mirada pedida por el guion: 'camera', 'partner', 'think' (ojos vagando sin ver nada) o null (automática)
+  let forcedGaze = null;
+  const THINK_GAZES = ['aside', 'down', 'up', 'aside'];
 
   let mouthOpen = 0;       // 0 = cerrada, 1 = muy abierta
   let mouthWide = 1;       // factor de anchura
@@ -747,7 +752,15 @@ export function createSamario() {
     updateRestingArm(t, dt, speakLevel > 0, mouthOpen);
 
     // --- Mirada: pasa por compañero, cámara, abajo y de lado sin quedarse fija ---
-    if (t >= gazeUntil) {
+    if (forcedGaze === 'camera' || forcedGaze === 'partner') {
+      gazeName = forcedGaze;
+      gazeUntil = t + 0.3;
+    } else if (forcedGaze === 'think') {
+      if (t >= gazeUntil || !THINK_GAZES.includes(gazeName)) {
+        gazeName = THINK_GAZES[Math.floor(Math.random() * THINK_GAZES.length)];
+        gazeUntil = t + 0.9 + Math.random() * 1.3;
+      }
+    } else if (t >= gazeUntil) {
       const options = GAZE_NEXT[gazeName];
       gazeName = options[Math.floor(Math.random() * options.length)];
       const st = GAZE_STATES[gazeName];
@@ -806,15 +819,22 @@ export function createSamario() {
     brows.forEach(b => { b.position.y = BROW_BASE_Y + browLift; });
   }
 
+  // Bucle propio: parpadeo y mirada siguen vivos también en reposo (fuera de la reproducción)
+  function bucle() {
+    tick();
+    if (typeof requestAnimationFrame === 'function') requestAnimationFrame(bucle);
+  }
+  if (typeof requestAnimationFrame === 'function') requestAnimationFrame(bucle);
+
   return {
     group,
+    setGazeMode: (modo) => { forcedGaze = modo || null; },
     // La boca ya no mueve la mandíbula: solo cambia la forma de la franja
     setJawOpen: (offsetY) => {
       volumePeak = Math.max(volumePeak * 0.998, offsetY, 0.01);
       speakLevel = offsetY > 0.004 ? Math.min(offsetY / volumePeak, 1) : 0;
     },
     setHeadAngles: (rotY, rotX, breathY = 0) => {
-      tick(); // parpadeo, miradas, boca y cejas (una vez por fotograma)
       headGroup.rotation.y = rotY * (1 - g.yawF) + g.yawAdd;
       headGroup.rotation.x = rotX + g.pitch;
       torso.position.y = 1.15 + breathY;

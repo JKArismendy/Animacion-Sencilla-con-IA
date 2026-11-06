@@ -1,0 +1,110 @@
+{
+  "titulo": "Episodio 2 - El ratio del arroz y del café",
+  "motor": "chatterbox",
+  "idioma": "es",
+  "modelo": "eleven_multilingual_v2",
+  "personajes": {
+    "Samario": {
+      "referencia": "audio/referencia/samario.wav",
+      "exaggeration": 0.5,
+      "cfg_weight": 0.5,
+      "voz_id": "YExhVa4bZONzeingloMX",
+      "stability": 0.55,
+      "similarity_boost": 0.8,
+      "style": 0.15
+    },
+    "Tostadito": {
+      "referencia": "audio/referencia/tostadito.wav",
+      "exaggeration": 0.7,
+      "cfg_weight": 0.4,
+      "voz_id": "ajOR9IDAaubDK5qtLUqQ",
+      "stability": 0.35,
+      "similarity_boost": 0.8,
+      "style": 0.45
+    }
+  },
+  "lineas": [
+    {
+      "personaje": "Samario",
+      "texto": "¿De nuevo con ese cuento del ratio? ¡Jaja!",
+      "pausa": 0,
+      "solapar": 0,
+      "mirada": "auto",
+      "camara": "WIDE"
+    },
+    {
+      "personaje": "Tostadito",
+      "texto": "Yo creo que nunca han hecho arroz en su vida, porque ahí mismito están usando ratio.",
+      "pausa": 0,
+      "solapar": 0,
+      "mirada": "auto",
+      "camara": "CUP"
+    },
+    {
+      "personaje": "Samario",
+      "texto": "Claro, dos de agua por una de arroz, ¡eso es ratio! Bueno, con tu café es igualito.",
+      "pausa": 0,
+      "solapar": 0,
+      "mirada": "auto",
+      "camara": [
+        {
+          "en": 0.0,
+          "plano": "SAMARIO"
+        },
+        {
+          "en": 0.1,
+          "zoom": 1.4,
+          "dura": 2.5
+        }
+      ]
+    },
+    {
+      "personaje": "Tostadito",
+      "texto": "¡Exacto! El ratio uno dieciséis es que por un gramo de café vas a usar dieciséis mililitros de agua.",
+      "pausa": 0,
+      "solapar": 0,
+      "mirada": "auto",
+      "camara": "CUP"
+    },
+    {
+      "personaje": "Tostadito",
+      "texto": "tú siempre decides. Aquí lo que importa es que a ti te guste: puedes usar gramera, tazas, cucharadas... ¡como quieras!",
+      "pausa": 0,
+      "solapar": 0,
+      "mirada": "auto",
+      "camara": [
+        { "en": 0.0, "plano": "CUP" },
+        { "en": 0.1, "zoom": 0.7, "dura": 8 }
+      ],
+      "acciones": [
+        {
+          "en": 0.2,
+          "dura": 0.6,
+          "quien": "Tostadito",
+          "gesto": "saltar"
+        }
+      ]
+    },
+    {
+      "personaje": "Samario",
+      "texto": "¿Y tú cómo encontraste tu receta perfecta?",
+      "pausa": 0,
+      "solapar": 0,
+      "mirada": "auto",
+      "camara": "WIDE"
+    },
+    {
+      "personaje": "Tostadito",
+      "texto": "¡Adiós!",
+      "pausa": 0,
+      "solapar": 0,
+      "mirada": "auto",
+      "camara": {
+        "plano": "WIDE",
+        "orbita": 15,
+        "zoom": 1.15,
+        "dura": 1.5
+      }
+    }
+  ]
+}

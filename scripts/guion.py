@@ -1,16 +1,25 @@
-"""Utilidades compartidas: lee y valida guion.json (la única fuente del guion)."""
+"""Utilidades compartidas: lee y valida un guion de guiones/<nombre>.json (la única fuente de cada guion).
+
+Todo lo que se genera de un guion vive en audio/<nombre>/ (voces, audio_completo.mp3,
+manifest.json y timeline.json), así que varios guiones no se pisan entre sí.
+"""
 import json
 import os
+import subprocess
 import sys
 
 RAIZ = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-RUTA_GUION = os.path.join(RAIZ, "guion.json")
-DIR_AUDIO = os.path.join(RAIZ, "audio")
-RUTA_TIMELINE = os.path.join(RAIZ, "src", "timeline.json")
+DIR_GUIONES = os.path.join(RAIZ, "guiones")
+DIR_AUDIO_BASE = os.path.join(RAIZ, "audio")
+
+# Segundos de plano final que se dejan tras la última palabra (silencio al final del audio)
+COLA_FINAL = 1.5
 
 MOTORES = {"chatterbox", "elevenlabs"}
 PLANOS_BASE = {"WIDE", "SAMARIO", "CUP"}
 TRANSICIONES = {"corte", "rapida", "normal", "lenta"}
+# Hacia dónde mira quien habla en una línea (auto = comportamiento automático)
+MIRADAS = {"auto", "camara", "companero", "pensando"}
 # Opciones de una orden de cámara (además de 'en' y 'transicion')
 OPCIONES_CAMARA = ("plano", "zoom", "dura", "inclinacion", "orbita")
 # Gestos disponibles por personaje (deben existir en src/audio-sync.js)
@@ -21,7 +30,37 @@ GESTOS = {
 
 
 def error(msg):
-    sys.exit(f"Error en guion.json: {msg}")
+    sys.exit(f"Error en el guion: {msg}")
+
+
+def listar_guiones():
+    """Nombres (sin .json) de los guiones que hay en guiones/."""
+    if not os.path.isdir(DIR_GUIONES):
+        return []
+    return sorted(f[:-5] for f in os.listdir(DIR_GUIONES) if f.endswith(".json"))
+
+
+def elegir_guion(argv):
+    """Nombre del guion pedido por línea de comandos (primer argumento que no sea una opción).
+
+    Si no se indica y solo existe uno, usa ese. Si hay varios, pide que se elija.
+    """
+    pedidos = [a for a in argv[1:] if not a.startswith("--")]
+    existentes = listar_guiones()
+    if pedidos:
+        nombre = pedidos[0][:-5] if pedidos[0].endswith(".json") else pedidos[0]
+        if nombre not in existentes:
+            sys.exit(f"No existe el guion '{nombre}'. Disponibles: {', '.join(existentes) or '(ninguno)'}")
+        return nombre
+    if len(existentes) == 1:
+        return existentes[0]
+    sys.exit(f"Indica qué guion usar. Disponibles: {', '.join(existentes) or '(ninguno)'}")
+
+
+def rutas(nombre):
+    """Rutas de un guion: (archivo del guion, carpeta de audio, timeline.json)."""
+    dir_audio = os.path.join(DIR_AUDIO_BASE, nombre)
+    return os.path.join(DIR_GUIONES, nombre + ".json"), dir_audio, os.path.join(dir_audio, "timeline.json")
 
 
 def archivo_audio(indice, linea):
@@ -56,10 +95,35 @@ def camara_de(linea):
     return sorted(cues, key=lambda c: c["en"])
 
 
-def cargar_guion():
-    if not os.path.isfile(RUTA_GUION):
-        error(f"no existe {RUTA_GUION}")
-    with open(RUTA_GUION, encoding="utf-8") as f:
+def obtener_duracion(ruta):
+    """Duración en segundos de un archivo de audio (ffprobe)."""
+    cmd = ["ffprobe", "-v", "error", "-show_entries", "format=duration",
+           "-of", "default=noprint_wrappers=1:nokey=1", ruta]
+    try:
+        return float(subprocess.check_output(cmd).decode().strip())
+    except Exception:
+        sys.exit(f"No se pudo medir la duración de {ruta}")
+
+
+def calcular_inicios(lineas, duraciones):
+    """Segundo en que empieza cada línea.
+
+    Cada una arranca al terminar la anterior, más su 'pausa' (silencio previo) y menos su
+    'solapar' (segundos que se mete encima de la anterior). Nunca antes de 0.
+    """
+    inicios, fin_anterior = [], 0.0
+    for linea, dur in zip(lineas, duraciones):
+        inicio = max(0.0, fin_anterior + float(linea.get("pausa", 0)) - float(linea.get("solapar", 0)))
+        inicios.append(inicio)
+        fin_anterior = inicio + dur
+    return inicios
+
+
+def cargar_guion(nombre):
+    ruta = rutas(nombre)[0]
+    if not os.path.isfile(ruta):
+        error(f"no existe {ruta}")
+    with open(ruta, encoding="utf-8") as f:
         try:
             g = json.load(f)
         except json.JSONDecodeError as e:
@@ -82,6 +146,14 @@ def cargar_guion():
             error(f"{donde}: personaje '{linea.get('personaje')}' no está en 'personajes'")
         if not str(linea.get("texto", "")).strip():
             error(f"{donde}: falta 'texto'")
+        if linea.get("mirada", "auto") not in MIRADAS:
+            error(f"{donde}: 'mirada' debe ser una de: {', '.join(sorted(MIRADAS))}")
+        for campo in ("pausa", "solapar"):
+            try:
+                if float(linea.get(campo, 0)) < 0:
+                    raise ValueError
+            except (TypeError, ValueError):
+                error(f"{donde}: '{campo}' debe ser un número de segundos mayor o igual a 0")
         try:
             cues = camara_de(linea)
         except (KeyError, TypeError, ValueError) as e:

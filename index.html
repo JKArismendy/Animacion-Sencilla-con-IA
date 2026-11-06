@@ -52,6 +52,24 @@
       cursor: pointer;
       box-shadow: 0 4px 15px rgba(231, 111, 81, 0.4);
     }
+    #selectores {
+      display: flex;
+      gap: 12px;
+      align-items: end;
+      color: #C9D1E0;
+      font-size: 12px;
+    }
+    #selectores label { display: flex; flex-direction: column; gap: 4px; }
+    select {
+      background: #121826;
+      color: #FFF;
+      border: 1px solid #2A3550;
+      border-radius: 6px;
+      padding: 8px 10px;
+      font-size: 14px;
+      min-width: 170px;
+    }
+    select:disabled { opacity: 0.5; }
     button:disabled { background: #333; cursor: not-allowed; box-shadow: none; }
   </style>
 
@@ -73,18 +91,21 @@
   <div id="viewport-container">
     <div id="subtitles">Listo para reproducir / grabar</div>
   </div>
+  <div id="selectores">
+    <label>Guion <select id="sel-guion"></select></label>
+    <label>Escena <select id="sel-escena"></select></label>
+    <button id="btn-editar" type="button">✏️ Editar guion</button>
+  </div>
+  <div id="estado-build" style="position:fixed;top:8px;right:8px;z-index:10;padding:4px 10px;border-radius:6px;font:12px sans-serif;background:#000a;color:#fff;display:none"></div>
   <button id="btn-record">🎬 Iniciar / Grabar Video 3D</button>
 
-  <audio id="main-audio" preload="auto">
-    <source src="audio_completo.mp3" type="audio/mp3">
-    <source src="audio/audio_completo.mp3" type="audio/mp3">
-  </audio>
+  <audio id="main-audio" preload="auto"></audio>
 
   <script type="module">
-    import { setupScene } from './src/scene.js';
-    import { setupCamera } from './src/camera.js';
+        import { setupCamera } from './src/camera.js';
     import { updateActors, setupAudioAnalyser, loadTimeline } from './src/audio-sync.js';
     import { createSubtitles } from './src/subtitles.js';
+    import { abrirPanel } from './src/panel-guion.js';
     import { createSamario } from './models/samario.js';
     import { createTostadito } from './models/tostadito.js';
 
@@ -93,19 +114,21 @@
     const btnRecord = document.getElementById('btn-record');
     const audioEl = document.getElementById('main-audio');
 
+    const selGuion = document.getElementById('sel-guion');
+    const selEscena = document.getElementById('sel-escena');
+    const btnEditar = document.getElementById('btn-editar');
+    let editando = false;      // true mientras el panel de edición está abierto
+
     // 1. Configuración de Lienzo y Renderizador (1080 x 1920)
     const WIDTH = 1080, HEIGHT = 1920;
-    // Línea de tiempo del guion (generada por scripts/construir.py)
-    let timeline;
-    try {
-      timeline = await loadTimeline();
-    } catch (err) {
-      subBox.innerHTML = err.message;
-      btnRecord.disabled = true;
-      throw err;
-    }
-    const scene = setupScene();
-    const { camera, update: updateCam } = setupCamera(WIDTH, HEIGHT, timeline.planos);
+
+    // Estado que cambia al elegir guion o escena
+    let timeline = null;
+    let scene = new THREE.Scene();
+    let camera = new THREE.PerspectiveCamera(40, WIDTH / HEIGHT, 0.1, 100);
+    let updateCam = () => {};
+    let samario = null, tostadito = null;
+    let guionActual = null;
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
     renderer.setSize(WIDTH, HEIGHT);
@@ -122,7 +145,7 @@
     const composer = new THREE.EffectComposer(renderer);
 
     // Pase 1: Escena 3D base
-    const renderPass = new THREE.RenderPass(scene, camera);
+    const renderPass = new THREE.RenderPass(scene, camera);   // escena y cámara se sustituyen al elegir
     composer.addPass(renderPass);
 
     // Pase 2: Bloom suave (resplandor de luces y reflejos)
@@ -143,12 +166,118 @@
     // Subtítulos dibujados dentro del canvas (quedan grabados en el video)
     const subs = createSubtitles(WIDTH, HEIGHT);
 
-    // 3. Montar Personajes
-    const samario = createSamario();
-    const tostadito = createTostadito();
-    scene.add(samario.group, tostadito.group);
+    // 3. Cargar escena y guion elegidos (los personajes se montan en la escena activa)
+    async function cargarEscena(id) {
+      const { setupScene } = await import(`./escenas/${id}.js`);
+      scene = setupScene();
+      samario = createSamario();
+      tostadito = createTostadito();
+      scene.add(samario.group, tostadito.group);
+      renderPass.scene = scene;
+    }
 
-    updateCam("WIDE");
+    async function cargarGuion(info) {
+      guionActual = info;
+      audioEl.removeAttribute('src');
+      audioEl.load();
+      if (!info.listo) {
+        timeline = null;
+        btnRecord.disabled = true;
+        subBox.innerHTML = `Al guion "${info.id}" le faltan los audios. Ejecuta: python scripts/construir.py ${info.id}`;
+        return;
+      }
+      try {
+        timeline = await loadTimeline(`./audio/${info.id}/timeline.json`);
+      } catch (err) {
+        timeline = null;
+        btnRecord.disabled = true;
+        subBox.innerHTML = err.message;
+        return;
+      }
+      ({ camera, update: updateCam } = setupCamera(WIDTH, HEIGHT, timeline.planos));
+      renderPass.camera = camera;
+      updateCam("WIDE");
+      audioEl.src = `audio/${info.id}/audio_completo.mp3`;
+      audioEl.load();
+      btnRecord.disabled = false;
+      subBox.innerHTML = "Listo para reproducir / grabar";
+    }
+
+    function bloquearSelectores(bloquear) {
+      selGuion.disabled = selEscena.disabled = btnEditar.disabled = bloquear;
+    }
+
+    let lista;
+    try {
+      lista = await (await fetch('/api/lista', { cache: 'no-store' })).json();
+    } catch (err) {
+      subBox.innerHTML = "No hay servidor. Ejecuta: python scripts/servidor.py";
+      btnRecord.disabled = true;
+      throw err;
+    }
+    for (const g of lista.guiones) {
+      selGuion.add(new Option(g.listo ? g.titulo : `${g.titulo} (sin audios)`, g.id));
+    }
+    for (const e of lista.escenas) selEscena.add(new Option(e, e));
+    if (!lista.guiones.length || !lista.escenas.length) {
+      subBox.innerHTML = "No hay guiones en guiones/ o escenas en escenas/";
+      btnRecord.disabled = true;
+      throw new Error("Sin guiones o escenas");
+    }
+
+    // Estado de la construcción automática del servidor (se avisa aquí y se recarga el guion al terminar)
+    const cajaEstado = document.getElementById('estado-build');
+    const estadoPrevio = {};
+    setInterval(async () => {
+      if (!audioEl.paused && !audioEl.ended) return;      // no interrumpir una reproducción o grabación
+      if (editando) return;                               // con el panel abierto no se recarga nada
+      let est;
+      try { est = await (await fetch('/api/estado', { cache: 'no-store' })).json(); } catch { return; }
+      const e = est.guiones[selGuion.value];
+      if (!e || e.estado === 'listo' && estadoPrevio[selGuion.value] !== 'construyendo' && estadoPrevio[selGuion.value] !== 'pendiente') {
+        cajaEstado.style.display = 'none';
+      } else if (e.estado === 'listo') {
+        cajaEstado.style.display = 'none';
+        lista = await (await fetch('/api/lista', { cache: 'no-store' })).json();
+        await cargarGuion(lista.guiones.find(g => g.id === selGuion.value));
+      } else {
+        cajaEstado.style.display = 'block';
+        btnRecord.disabled = e.estado !== 'error' || !timeline;   // mientras se construye, el audio no está al día
+        cajaEstado.textContent = e.estado === 'error' ? `Error al construir: ${e.mensaje}`
+          : `Construyendo "${selGuion.value}"... (${e.estado})`;
+      }
+      if (e) estadoPrevio[selGuion.value] = e.estado;
+    }, 2000);
+
+    // Panel de edición del guion: mientras está abierto no se puede grabar ni cambiar de guion
+    btnEditar.addEventListener('click', async () => {
+      editando = true;
+      btnRecord.disabled = true;
+      bloquearSelectores(true);
+      let res = 'cancelado';
+      try {
+        res = await abrirPanel(selGuion.value);
+      } catch (err) {
+        subBox.innerHTML = 'No se pudo abrir el panel: ' + err.message;
+      }
+      editando = false;
+      bloquearSelectores(false);
+      btnRecord.disabled = !timeline || res === 'guardado';   // tras guardar queda bloqueado hasta que termine la construcción
+      if (res === 'guardado') {
+        try {
+          const est = await (await fetch('/api/estado', { cache: 'no-store' })).json();
+          if (!est.auto) {
+            btnRecord.disabled = !timeline;
+            subBox.innerHTML = `Guardado. Construcción automática desactivada: ejecuta python scripts/construir.py ${selGuion.value}`;
+          }
+        } catch {}
+      }
+    });
+
+    selEscena.addEventListener('change', () => cargarEscena(selEscena.value));
+    selGuion.addEventListener('change', () => cargarGuion(lista.guiones.find(g => g.id === selGuion.value)));
+    await cargarEscena(selEscena.value);
+    await cargarGuion(lista.guiones.find(g => g.id === selGuion.value));
 
     // 4. Grabador de Video
     let isAudioSetup = false;
@@ -156,6 +285,7 @@
 
     btnRecord.addEventListener('click', async () => {
       btnRecord.disabled = true;
+      bloquearSelectores(true);
 
       try {
         if (!isAudioSetup) {
@@ -185,9 +315,10 @@
         recorder.onstop = () => {
           const a = document.createElement('a');
           a.href = URL.createObjectURL(new Blob(chunks, { type: 'video/webm' }));
-          a.download = "CoffeeTales_Episodio1.webm";
+          a.download = `CoffeeTales_${guionActual.id}.webm`;
           a.click();
           btnRecord.disabled = false;
+          bloquearSelectores(false);
           subBox.innerHTML = "¡Video final procesado!";
         };
 
@@ -200,12 +331,16 @@
         console.error("Error en render:", err);
         subBox.innerHTML = "Error al iniciar. Revisa F12.";
         btnRecord.disabled = false;
+        bloquearSelectores(false);
       }
     });
 
     // 5. Bucle Principal con Renderizado por Compositor
     function animate() {
       requestAnimationFrame(animate);
+
+      // Escenas con vida (palmeras, olas, nubes...) se animan solas con el reloj
+      if (scene.userData.update) scene.userData.update(performance.now() / 1000);
 
       if (!audioEl.paused && !audioEl.ended) {
         const t = audioEl.currentTime;
@@ -215,6 +350,13 @@
       } else {
         updateCam("WIDE");
         subs.update(-1);
+        // Sin reproducción nadie habla: sin esto la boca se queda con el último valor (se vería moverse)
+        if (samario && tostadito) {
+          samario.setGazeMode(null);
+          tostadito.setGazeMode(null);
+          samario.setJawOpen(0);
+          tostadito.setMouthScale(1.0);
+        }
       }
 
       // El renderizado ahora pasa por composer en vez de renderer directo

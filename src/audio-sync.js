@@ -1,5 +1,5 @@
 // 1. LÍNEA DE TIEMPO
-// Se carga desde src/timeline.json, que genera scripts/medir_tiempos.py a partir de guion.json:
+// Se carga desde audio/<guion>/timeline.json, que genera scripts/medir_tiempos.py a partir de guiones/<guion>.json:
 //   lineas   -> quién habla y qué dice, con tiempos reales
 //   camara   -> cambios de plano (pueden ocurrir a mitad de una línea)
 //   acciones -> gestos de los personajes en momentos concretos
@@ -56,6 +56,7 @@ function getAudioVolume() {
 }
 
 // 3. VARIABLES DE ESTADO Y CONTROL DE ACTUACIÓN
+const MODOS_MIRADA = { camara: 'camera', companero: 'partner', pensando: 'think' };
 let currentSamarioHeadY = 0;
 let currentSamarioHeadX = 0;
 let currentSamarioArm = 0;
@@ -64,13 +65,18 @@ let currentCupTiltZ = 0;
 
 export function updateActors(time, samario, tostadito) {
   // Línea de diálogo activa (quién habla)
-  const current = timeline.lineas.find(s => time >= s.start && time < s.end)
+  const current = timeline.lineas.findLast(s => time >= s.start && time < s.end)
     || { speaker: "None", start: time, end: time + 1 };
   const volume = getAudioVolume();
   const isSpeaking = volume > 0.02;
 
   const isSamarioTurn = (current.speaker === "Samario");
   const isCupTurn = (current.speaker === "Tostadito");
+
+  // Hacia dónde mira quien habla, según 'mirada' de la línea del guion (auto = comportamiento automático)
+  const modo = MODOS_MIRADA[current.mirada] || null;
+  samario.setGazeMode(isSamarioTurn ? modo : null);
+  tostadito.setGazeMode(isCupTurn ? modo : null);
 
   // ==========================================
   // --- ACTUACIÓN DE SAMARIO ---

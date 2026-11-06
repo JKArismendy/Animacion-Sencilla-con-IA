@@ -1,4 +1,7 @@
 // extraShots: planos propios definidos en guion.json -> "planos": { NOMBRE: { pos: [x,y,z], mira: [x,y,z] } }
+// Intensidad de la cámara en mano: 1 = original, 0 = sin temblor
+const SHAKE = 0.55;
+
 export function setupCamera(width, height, extraShots = {}) {
   const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 100);
 
@@ -106,14 +109,14 @@ export function setupCamera(width, height, extraShots = {}) {
       const jitterX = Math.sin(clock * 4.3) * 0.003 + Math.cos(clock * 7.1) * 0.0015;
       const jitterY = Math.cos(clock * 5.2) * 0.003 + Math.sin(clock * 8.3) * 0.0015;
 
-      const totalShakeX = driftX + jitterX;
-      const totalShakeY = driftY + jitterY;
+      const totalShakeX = (driftX + jitterX) * SHAKE;
+      const totalShakeY = (driftY + jitterY) * SHAKE;
 
       // 3. Aplicar desfase a la posición de la cámara
       camera.position.set(
         orbitPos.x + totalShakeX,
         orbitPos.y + totalShakeY,
-        orbitPos.z + (Math.sin(clock * 1.1) * 0.005)
+        orbitPos.z + (Math.sin(clock * 1.1) * 0.005) * SHAKE
       );
 
       // 4. El punto de enfoque (lookAt) también tiene un micro-arrastre sutil
@@ -124,7 +127,7 @@ export function setupCamera(width, height, extraShots = {}) {
       );
 
       // 5. Inclinación involuntaria de muñeca (Roll leve en el eje Z)
-      camera.rotation.z = Math.sin(clock * 1.3) * 0.006 + Math.cos(clock * 3.7) * 0.002 + cur.roll;
+      camera.rotation.z = (Math.sin(clock * 1.3) * 0.006 + Math.cos(clock * 3.7) * 0.002) * SHAKE + cur.roll;
     }
   };
 }

@@ -8,24 +8,24 @@ Guía de las luces de la escena 3D de **CoffeeTales** (Three.js r128): qué luz 
 
 | Nombre en el código | Archivo | Tipo | Color | Qué hace en el video |
 |---|---|---|---|---|
-| `ambientLight` | `src/scene.js` | Ambiente | `0x0F1826` | Base oscura azulada de toda la escena |
-| `keyLight` | `src/scene.js` | Foco (SpotLight) | `0xFFA866` ámbar | Luz principal cálida, de frente a la izquierda |
-| `rimLightCyan` | `src/scene.js` | Foco (SpotLight) | `0x00E5FF` cian | Borde cian en el contorno derecho |
-| `kickerLeft` | `src/scene.js` | Puntual (PointLight) | `0x1D4ED8` azul | Borde azul tenue en el hombro izquierdo |
-| `light` en `createPendant` (×2) | `src/scene.js` | Puntual (PointLight) | `0xFFB066` cálido | Ladrillo y pizarra por arriba, a los lados |
+| `ambientLight` | `escenas/cafeteria.js` | Ambiente | `0x0F1826` | Base oscura azulada de toda la escena |
+| `keyLight` | `escenas/cafeteria.js` | Foco (SpotLight) | `0xFFA866` ámbar | Luz principal cálida, de frente a la izquierda |
+| `rimLightCyan` | `escenas/cafeteria.js` | Foco (SpotLight) | `0x00E5FF` cian | Borde cian en el contorno derecho |
+| `kickerLeft` | `escenas/cafeteria.js` | Puntual (PointLight) | `0x1D4ED8` azul | Borde azul tenue en el hombro izquierdo |
+| `light` en `createPendant` (×2) | `escenas/cafeteria.js` | Puntual (PointLight) | `0xFFB066` cálido | Ladrillo y pizarra por arriba, a los lados |
 | `warmLight` | `models/tostadito.js` | Puntual (PointLight) | `0xFF8A3D` naranja | Resplandor del café dentro de la taza |
 
 ## Detalle de cada luz
 
 ### 1. `ambientLight` — luz ambiente
-- **Archivo:** `src/scene.js` (≈ línea 232)
+- **Archivo:** `escenas/cafeteria.js` (≈ línea 232)
 - **Código:** `new THREE.AmbientLight(0x0F1826, 0.75)`
 - **Valores:** color `0x0F1826`, intensidad `0.75`.
 - **Efecto:** ilumina por igual todas las caras, venga la luz de donde venga. Al ser muy oscura, las caras que no reciben ninguna otra luz quedan casi negras.
 - **Si quieres más claridad en las zonas de sombra:** sube la intensidad o usa un color más claro (por ejemplo `0x2A3A55`).
 
 ### 2. `keyLight` — luz principal (cálida, ámbar)
-- **Archivo:** `src/scene.js` (≈ líneas 237–252)
+- **Archivo:** `escenas/cafeteria.js` (≈ líneas 237–252)
 - **Posición:** `(-1.4, 2.6, 2.2)` — a la izquierda, arriba y delante de los personajes.
 - **Objetivo:** `targetObj` en `(0, 1.25, 0.2)`.
 - **Valores:**
@@ -46,21 +46,21 @@ Guía de las luces de la escena 3D de **CoffeeTales** (Three.js r128): qué luz 
 - **Es la única luz que proyecta sombras.**
 
 ### 3. `rimLightCyan` — luz de contorno (cian)
-- **Archivo:** `src/scene.js` (≈ líneas 256–262)
+- **Archivo:** `escenas/cafeteria.js` (≈ líneas 256–262)
 - **Posición:** `(2.2, 2.6, -1.4)` — a la derecha, arriba y **detrás** de los personajes.
 - **Objetivo:** `targetObj` en `(0, 1.25, 0.2)`.
 - **Valores:** color `0x00E5FF`, intensidad `2.2`, `angle = Math.PI / 2.5`, `penumbra = 0.5`.
 - **Efecto:** dibuja la línea cian en el borde derecho de Samario, del pelo y de la taza. Al venir de atrás, no ilumina las caras frontales.
 
 ### 4. `kickerLeft` — luz de recorte azul (SpotLight)
-- **Archivo:** `src/scene.js` (≈ líneas 263–272)
+- **Archivo:** `escenas/cafeteria.js` (≈ líneas 263–272)
 - **Posición:** `(-2.2, 2.0, -1.0)` — a la izquierda y detrás.
 - **Objetivo:** `kickerTarget` en `(0, 1.3, -0.25)` — la espalda de los personajes.
 - **Valores:** color `0x1485E0`, intensidad `7.0`, `distance = 5.0`, `angle = Math.PI / 4`, `penumbra = 0.6`.
 - **Efecto:** recorta con un borde azul el hombro y la cabeza desde atrás.
 
 ### 5. Lámparas colgantes — `light` dentro de `createPendant(x)`
-- **Archivo:** `src/scene.js` (≈ líneas 318–330). Se crean dos: `createPendant(-0.85)` y `createPendant(0.85)`.
+- **Archivo:** `escenas/cafeteria.js` (≈ líneas 318–330). Se crean dos: `createPendant(-0.85)` y `createPendant(0.85)`.
 - **Posición:** `(±0.85, 3.03, -1.3)` — en lo alto, delante de la pared.
 - **Valores:** color `0xFFB066`, intensidad `0.9`, `distance = 3.5`, `decay = 2`.
 - **Efecto:** ilumina el ladrillo, la pizarra y las ventanas por la parte superior. La bombilla visible es un material sin luz propia (`MeshBasicMaterial 0xFFE0A0`).
@@ -77,10 +77,10 @@ Estos materiales brillan sin depender de ninguna luz:
 
 | Objeto | Archivo | Valor |
 |---|---|---|
-| Pared de ladrillo (`wallMat`) | `src/scene.js` | `emissiveIntensity: 0.32` |
-| Cara de la pizarra (`boardFace`) | `src/scene.js` | `emissiveIntensity: 0.12` |
+| Pared de ladrillo (`wallMat`) | `escenas/cafeteria.js` | `emissiveIntensity: 0.32` |
+| Cara de la pizarra (`boardFace`) | `escenas/cafeteria.js` | `emissiveIntensity: 0.12` |
 | Superficie del café (`coffeeMat`) | `models/tostadito.js` | `emissiveIntensity: 0.35` |
-| Bombilla de las lámparas | `src/scene.js` | `MeshBasicMaterial 0xFFE0A0` (sin sombreado) |
+| Bombilla de las lámparas | `escenas/cafeteria.js` | `MeshBasicMaterial 0xFFE0A0` (sin sombreado) |
 
 ## Sombras
 
